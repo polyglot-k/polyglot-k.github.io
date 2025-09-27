@@ -5,7 +5,7 @@
 "아니, Webflux라며! 이게 어떻게 된 일이지?"
 
 기대했던 고성능은 온데간데없고, 애플리케이션은 거의 마비 상태였습니다. 대체 어디서부터 잘못된 걸까요? 이 글은 제 Webflux 애플리케이션의 성능을 질식시키던 범인을 찾아나선, 한 편의 추리극이자 삽질의 기록입니다.
-![1.png](/2025-09-27-spring-webflux-performance/4.png)
+![1.png](/2025-09-27-spring-webflux-performance/1.png)
 
 ## 1단계: 범죄 현장 분석
 
@@ -84,7 +84,7 @@ Webflux의 비동기 모델 위에서 CPU를 많이 쓰는 `Bcrypt`가 돌아가
 ![4.png](/2025-09-27-spring-webflux-performance/4.png)
 
 **개선 후 (PBKDF2 + R2DBC Pool)**
-![5.png](/2025-09-27-spring-webflux-performance/4.png)
+![5.png](/2025-09-27-spring-webflux-performance/5.png)
 
 **초당 요청 처리량(RPS)은 7.5에서 179.8로, 무려 23배(2300%)나 증가했습니다.**
 
