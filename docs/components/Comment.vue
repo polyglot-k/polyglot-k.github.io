@@ -25,9 +25,9 @@ export default {
             const script = document.createElement("script");
             script.src = "https://giscus.app/client.js";
             script.setAttribute("data-repo", "polyglot-k/polyglot-k.github.io");
-            script.setAttribute("data-repo-id", "R_kgDONGt-zw");
+            script.setAttribute("data-repo-id", "R_kgDOP31qBA");
             script.setAttribute("data-category", "General");
-            script.setAttribute("data-category-id", "DIC_kwDONGt-z84CjvgS");
+            script.setAttribute("data-category-id", "DIC_kwDOP31qBM4Cv84E");
             script.setAttribute("data-mapping", "pathname");
             script.setAttribute("data-strict", "0");
             script.setAttribute("data-reactions-enabled", "1");
