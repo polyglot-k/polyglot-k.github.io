@@ -1,5 +1,5 @@
 module.exports = {
-    base: "/",
+    base: "/polyglot-k.github.io/",
     title: "나의 블로그",
     description: "VuePress로 만든 나의 멋진 블로그",
     head: [["link", { rel: "stylesheet", href: "https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" }]],
