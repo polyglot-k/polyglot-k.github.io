@@ -8,7 +8,7 @@ module.exports = {
         sidebarDepth: 2,
         nav: [
             { text: "Home", link: "/" },
-            { text: "Posts", link: "/posts/2025-09-28-second-post.html" },
+            { text: "Posts", link: "/posts/2025-09-27-spring-webflux-performance.html" },
         ],
         sidebar: {
             "/posts/": [
