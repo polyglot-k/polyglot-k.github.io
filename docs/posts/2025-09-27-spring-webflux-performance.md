@@ -9,7 +9,7 @@
 
 ## 1단계: 범죄 현장 분석
 
-<img src="/2025-09-27-spring-webflux-performance/4.png" width="150px"/>
+<img src="/2025-09-27-spring-webflux-performance/2.png" width="350px"/>
 
 먼저 현장 상황부터 다시 정리해 보죠.
 
