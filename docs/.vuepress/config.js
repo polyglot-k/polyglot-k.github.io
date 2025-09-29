@@ -9,8 +9,7 @@ function getPostChildren() {
         const files = fs
             .readdirSync(postsDir)
             .filter((file) => file.endsWith(".md"))
-            .sort((a, b) => b.localeCompare(a)); // 날짜순 역순 정렬 (최신순)
-
+            .sort((a, b) => b.localeCompare(a));
         return files;
     } catch (error) {
         console.warn("포스트 디렉토리를 읽을 수 없습니다:", error.message);
