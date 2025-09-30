@@ -4,7 +4,7 @@ sidebar: false
 ---
 
 <p align="center">
-  <img src="heroLog.png" alt="hero image" style="width: 200px; border-radius: 50%;">
+  <img src="/heroLog.png" alt="hero image" style="width: 200px; border-radius: 50%;">
 </p>
 
 <h1 align="center">소개</h1>
