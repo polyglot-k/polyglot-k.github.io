@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Redis Pub/Sub 으로 분산 실시간 상태 머신 구현하기 | Polyglot-K의 블로그</title>
+    <meta name="generator" content="VuePress 1.9.10">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <meta name="description" content="다양한 도전을 즐기는 개발자 Polyglot-K의 블로그입니다.">
+    
+    <link rel="preload" href="/assets/css/0.styles.6efed9ee.css" as="style"><link rel="preload" href="/assets/js/app.3e0c7978.js" as="script"><link rel="preload" href="/assets/js/2.e2e96b39.js" as="script"><link rel="preload" href="/assets/js/1.49846db0.js" as="script"><link rel="preload" href="/assets/js/25.8c8a0afd.js" as="script"><link rel="prefetch" href="/assets/js/10.1e3fe773.js"><link rel="prefetch" href="/assets/js/11.56e5a865.js"><link rel="prefetch" href="/assets/js/12.1aa3b0c3.js"><link rel="prefetch" href="/assets/js/13.1dd11157.js"><link rel="prefetch" href="/assets/js/14.0122fd01.js"><link rel="prefetch" href="/assets/js/15.18ef8915.js"><link rel="prefetch" href="/assets/js/16.98147816.js"><link rel="prefetch" href="/assets/js/17.46fff286.js"><link rel="prefetch" href="/assets/js/18.a9838e2e.js"><link rel="prefetch" href="/assets/js/19.34738524.js"><link rel="prefetch" href="/assets/js/20.27ef86b3.js"><link rel="prefetch" href="/assets/js/21.c7b8d009.js"><link rel="prefetch" href="/assets/js/22.f84154f0.js"><link rel="prefetch" href="/assets/js/23.fbc1d3ff.js"><link rel="prefetch" href="/assets/js/24.c58c220f.js"><link rel="prefetch" href="/assets/js/26.e0bcc60b.js"><link rel="prefetch" href="/assets/js/27.017d7e2a.js"><link rel="prefetch" href="/assets/js/3.75064c1e.js"><link rel="prefetch" href="/assets/js/4.2afe5cdc.js"><link rel="prefetch" href="/assets/js/5.a37b361e.js"><link rel="prefetch" href="/assets/js/6.c34bda13.js"><link rel="prefetch" href="/assets/js/7.b04f2031.js"><link rel="prefetch" href="/assets/js/vendors~docsearch.6fed1ae2.js">
+    <link rel="stylesheet" href="/assets/css/0.styles.6efed9ee.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="/" class="home-link router-link-active"><!----> <span class="site-name">Polyglot-K의 블로그</span></a> <div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <nav class="nav-links can-hide"><div class="nav-item"><a href="/" class="nav-link">
+  Home
+</a></div><div class="nav-item"><a href="/posts/2025-08-25-spring-webflux-performance.html" class="nav-link">
+  Posts
+</a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="/" class="nav-link">
+  Home
+</a></div><div class="nav-item"><a href="/posts/2025-08-25-spring-webflux-performance.html" class="nav-link">
+  Posts
+</a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>게시물 목록</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/posts/2025-08-25-spring-webflux-performance.html" class="sidebar-link">Spring Webflux 애플리케이션 성능 병목 분석 및 38배 개선기</a></li><li><a href="/posts/2025-08-10-scheduler-mq-data-archiving.html" class="sidebar-link">아웃박스 패턴을 통한 중간 상태 데이터 관리와 복원 가능한 배치 설계</a></li><li><a href="/posts/2025-08-05-valkey-concurrency-issue.html" class="sidebar-link">Redis Lua 스크립트를 활용한 동시성 제어와 좌석 선점 로직 개선기</a></li><li><a href="/posts/2025-07-20-ice-breaking-platform.html" aria-current="page" class="active sidebar-link">Redis Pub/Sub 으로 분산 실시간 상태 머신 구현하기</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/posts/2025-07-20-ice-breaking-platform.html#_1️⃣-배경-실시간-게임에서의-상태-전파-문제" class="sidebar-link">1️⃣ 배경 — 실시간 게임에서의 상태 전파 문제</a></li><li class="sidebar-sub-header"><a href="/posts/2025-07-20-ice-breaking-platform.html#_2️⃣-설계-의도-브리지-아키텍처-기반-pub-sub" class="sidebar-link">2️⃣ 설계 의도 — 브리지 아키텍처 기반 Pub/Sub</a></li><li class="sidebar-sub-header"><a href="/posts/2025-07-20-ice-breaking-platform.html#_3️⃣-문제-redis-pub-sub의-데이터-유실성" class="sidebar-link">3️⃣ 문제 — Redis Pub/Sub의 데이터 유실성</a></li><li class="sidebar-sub-header"><a href="/posts/2025-07-20-ice-breaking-platform.html#_4️⃣-상태-전이-로직-간단한-커스텀-상태-머신" class="sidebar-link">4️⃣ 상태 전이 로직 — 간단한 커스텀 상태 머신</a></li><li class="sidebar-sub-header"><a href="/posts/2025-07-20-ice-breaking-platform.html#_5️⃣-상태-전이-→-브로드캐스트" class="sidebar-link">5️⃣ 상태 전이 → 브로드캐스트</a></li><li class="sidebar-sub-header"><a href="/posts/2025-07-20-ice-breaking-platform.html#_6️⃣-트레이드오프와-회고" class="sidebar-link">6️⃣ 트레이드오프와 회고</a></li></ul></li><li><a href="/posts/2025-07-15-text-based-real-time-streaming-virtual-interview.html" class="sidebar-link">Spring WebFlux와 Redis로 구축한 LLM 스트리밍 파이프라인</a></li></ul></section></li></ul> </aside> <main class="page"> <div class="theme-default-content content__default"><h1 id="redis-pub-sub-으로-분산-실시간-상태-머신-구현하기"><a href="#redis-pub-sub-으로-분산-실시간-상태-머신-구현하기" class="header-anchor">#</a> Redis Pub/Sub 으로 분산 실시간 상태 머신 구현하기</h1> <p>이번 글에서는 사이드 프로젝트 **‘얼음땡(Icebreaker)’**을 개발하면서 겪었던,
+<strong>Redis Pub/Sub 기반의 분산 상태 관리(State Machine) 설계 경험</strong>을 정리해보려 한다.
+이 프로젝트는 단순한 실시간 게임이었지만, 동시에 **“여러 인스턴스 간 상태 동기화”**라는 흥미로운 문제를 다뤘다.</p> <h2 id="_1️⃣-배경-실시간-게임에서의-상태-전파-문제"><a href="#_1️⃣-배경-실시간-게임에서의-상태-전파-문제" class="header-anchor">#</a> 1️⃣ 배경 — 실시간 게임에서의 상태 전파 문제</h2> <p>프로젝트의 요구사항은 명확했다.</p> <ul><li>사용자들이 하나의 방(Room)에 입장한다.</li> <li>방장은 게임을 시작·정지할 수 있다.</li> <li>모든 참가자에게 방 상태 변화가 <strong>실시간으로</strong> 전파되어야 한다.</li></ul> <p>이때 우리는 Spring 기반의 <strong>STOMP WebSocket</strong>을 사용하고 있었다.
+처음에는 <code>SimpleBroker</code> 기반의 인메모리 브로커로 구현했지만,
+곧 한 가지 한계에 부딪혔다.</p> <blockquote><p>“서로 다른 인스턴스에 연결된 사용자들에게는 메시지가 전달되지 않는다.”</p></blockquote> <p>즉, <strong>멀티 인스턴스 환경에서 방 상태를 브로드캐스트할 수 없는 문제</strong>였다.
+우리가 사용한 구성은 다음과 같았다.</p> <ul><li><strong>WAS</strong>: EC2 t2.micro 인스턴스 2대</li> <li><strong>Redis</strong>: EC2 t2.micro 1대</li></ul> <p>MVP 단계였기 때문에 Kafka나 RabbitMQ 같은 MQ를 굳이 도입하기보다는,
+<strong>가볍고 빠른 Redis Pub/Sub</strong>으로 분산 브로드캐스트를 구현해보기로 했다.</p> <h2 id="_2️⃣-설계-의도-브리지-아키텍처-기반-pub-sub"><a href="#_2️⃣-설계-의도-브리지-아키텍처-기반-pub-sub" class="header-anchor">#</a> 2️⃣ 설계 의도 — 브리지 아키텍처 기반 Pub/Sub</h2> <p>STOMP는 크게 두 가지 형태로 동작한다.</p> <table><thead><tr><th>유형</th> <th>설명</th> <th>예시</th></tr></thead> <tbody><tr><td><strong>SimpleBroker</strong></td> <td>애플리케이션 내부 인메모리 브로커</td> <td>단일 인스턴스용</td></tr> <tr><td><strong>RelayBroker</strong></td> <td>외부 MQ(RabbitMQ, ActiveMQ 등)와 연동</td> <td>다중 인스턴스용</td></tr></tbody></table> <p>다중 인스턴스 환경에서 <code>SimpleBroker</code>만 사용하면,
+<strong>다른 인스턴스의 세션 정보에 접근할 수 없기 때문에 메시지 전파가 불가능하다.</strong>
+따라서 이를 해결하기 위해 <strong>Redis Pub/Sub 브리지 아키텍처</strong>를 설계했다.</p> <ul><li>WAS 간 메시지 중계 역할을 Redis가 수행</li> <li>각 인스턴스는 동일한 Redis 채널에 구독</li> <li>특정 방 상태 변경 이벤트가 발생하면 Redis에 Publish</li> <li>구독 중인 다른 인스턴스에서도 동일한 메시지를 수신 후 STOMP로 전달</li></ul> <p>이 구조를 통해 <strong>멀티 인스턴스 간 브로드캐스트 문제를 간단히 해결</strong>할 수 있었다.</p> <h2 id="_3️⃣-문제-redis-pub-sub의-데이터-유실성"><a href="#_3️⃣-문제-redis-pub-sub의-데이터-유실성" class="header-anchor">#</a> 3️⃣ 문제 — Redis Pub/Sub의 데이터 유실성</h2> <p>Redis Pub/Sub은 메시지 큐와 달리 <strong>내구성(Persistence)</strong> 이 없다.
+즉, Subscriber가 잠시 끊겨있으면 해당 기간의 메시지는 유실된다.</p> <p>실시간 게임에서는 모든 참가자가 “현재 방의 상태”를 동일하게 인식해야 하기 때문에,
+메시지 유실은 곧 <strong>게임 동기화 실패</strong>로 이어진다.</p> <p>이를 해결하기 위해 다음과 같은 보조 구조를 설계했다.</p> <ul><li><p><strong>Redis String</strong> 구조로 각 방의 현재 상태를 별도로 저장</p> <ul><li>예: <code>room:{roomId} → {&quot;state&quot;: &quot;PLAYING&quot;, &quot;players&quot;: [&quot;user1&quot;, &quot;user2&quot;]}</code></li></ul></li> <li><p>클라이언트가 방에 재입장하거나 재연결할 경우,
+Redis에서 최신 상태를 조회하여 복원하도록 구성</p></li></ul> <p>즉, Pub/Sub은 “변경 이벤트 전파” 용도로만 사용하고,
+<strong>실제 상태의 Source of Truth는 Redis String으로 관리</strong>했다.</p> <h2 id="_4️⃣-상태-전이-로직-간단한-커스텀-상태-머신"><a href="#_4️⃣-상태-전이-로직-간단한-커스텀-상태-머신" class="header-anchor">#</a> 4️⃣ 상태 전이 로직 — 간단한 커스텀 상태 머신</h2> <p>방의 상태는 단순한 토글 수준이 아니라, 여러 전이 규칙을 가지고 있었다.</p> <p>예를 들어,</p> <ul><li><code>WAITING</code> → <code>READY</code> → <code>PLAYING</code> → <code>FINISHED</code></li> <li>각 단계마다 유효한 입력만 전이 가능해야 한다.</li></ul> <p>초기에는 단순한 <code>if-else</code> 분기로 전이를 관리했지만,
+상태가 늘어나자 코드 복잡도가 기하급수적으로 증가했다.</p> <p>이때 <strong>Spring StateMachine 프레임워크</strong>를 검토했다.
+하지만 러닝 커브와 오버헤드가 높았고,
+MVP 단계에서는 필요한 기능만 직접 구현하는 것이 더 효율적이었다.</p> <p>그래서 학부 시절 배운 <strong>오토마타(Automata)</strong> 개념을 떠올려,
+아래와 같은 구조를 직접 정의했다.</p> <table><thead><tr><th>구성 요소</th> <th>역할</th></tr></thead> <tbody><tr><td><strong>State</strong></td> <td>방의 현재 상태 (WAITING, PLAYING 등)</td></tr> <tr><td><strong>Transition</strong></td> <td>특정 입력(Event)에 따른 상태 전이</td></tr> <tr><td><strong>Guard</strong></td> <td>전이 가능 여부 검사</td></tr> <tr><td><strong>Action</strong></td> <td>전이 시 수행되는 로직</td></tr></tbody></table> <p>결국, Redis에 저장된 <code>room:{id}</code> 상태를 읽고,
+전이 가능 여부를 확인한 뒤 새로운 상태로 업데이트하는
+<strong>경량 커스텀 상태 머신</strong>을 완성했다.</p> <h2 id="_5️⃣-상태-전이-→-브로드캐스트"><a href="#_5️⃣-상태-전이-→-브로드캐스트" class="header-anchor">#</a> 5️⃣ 상태 전이 → 브로드캐스트</h2> <p>상태가 성공적으로 전이되면,
+해당 이벤트를 모든 참가자에게 브로드캐스트해야 했다.</p> <p>이를 위해 내부적으로 <strong><code>SimpleStompNotifier</code></strong> 콜백을 두었다.
+상태 전이가 발생할 때마다
+해당 방에 속한 모든 세션에게 STOMP 메시지를 전송하는 방식이다.</p> <p>즉, 하나의 상태 전이가 다음과 같은 흐름으로 이어졌다.</p> <ol><li>Redis에 저장된 방 상태 조회</li> <li>상태 머신으로 전이 가능 여부 판단</li> <li>새로운 상태 저장</li> <li>Redis Pub/Sub으로 상태 변경 이벤트 발행</li> <li>다른 인스턴스에서 수신 후 STOMP를 통해 클라이언트에게 전달</li></ol> <p>이 과정을 통해,
+<strong>서버 인스턴스 간의 실시간 상태 동기화</strong>와
+<strong>클라이언트에게의 실시간 전파</strong>를 동시에 달성했다.</p> <h2 id="_6️⃣-트레이드오프와-회고"><a href="#_6️⃣-트레이드오프와-회고" class="header-anchor">#</a> 6️⃣ 트레이드오프와 회고</h2> <p>이 설계는 간결하고 운영 비용이 낮다는 점에서 매우 효율적이었다.
+하지만 동시에, Redis Pub/Sub 특유의 제약도 명확했다.</p> <table><thead><tr><th>항목</th> <th>장점</th> <th>한계</th></tr></thead> <tbody><tr><td><strong>구현 복잡도</strong></td> <td>낮음, 빠르게 MVP 구축 가능</td> <td>기능 확장 시 if-else 증가</td></tr> <tr><td><strong>운영 비용</strong></td> <td>MQ 불필요, Redis 단일 운영</td> <td>Redis 장애 시 전체 메시지 유실</td></tr> <tr><td><strong>확장성</strong></td> <td>WAS 간 실시간 전파 가능</td> <td>Subscriber 수 증가 시 부하 증가</td></tr> <tr><td><strong>복원성</strong></td> <td>Redis String으로 상태 복원 가능</td> <td>Pub/Sub 자체는 비내구적</td></tr></tbody></table> <p>특히 Pub/Sub의 “유실성”은 완전히 해결되지 않는다.
+이 문제는 추후 Redis Stream 또는 Kafka를 도입하여
+**“메시지 내구성 + 순서 보장”**을 확보하는 방식으로 개선할 예정이다.</p></div> <footer class="page-edit"><!----> <!----></footer> <div class="page-nav"><p class="inner"><span class="prev">
+      ←
+      <a href="/posts/2025-08-05-valkey-concurrency-issue.html" class="prev">
+        Redis Lua 스크립트를 활용한 동시성 제어와 좌석 선점 로직 개선기
+      </a></span> <span class="next"><a href="/posts/2025-07-15-text-based-real-time-streaming-virtual-interview.html">
+        Spring WebFlux와 Redis로 구축한 LLM 스트리밍 파이프라인
+      </a>
+      →
+    </span></p></div> </main></div><div class="global-ui"></div></div>
+    <script src="/assets/js/app.3e0c7978.js" defer></script><script src="/assets/js/2.e2e96b39.js" defer></script><script src="/assets/js/1.49846db0.js" defer></script><script src="/assets/js/25.8c8a0afd.js" defer></script>
+  </body>
+</html>
