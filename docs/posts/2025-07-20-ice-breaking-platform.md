@@ -1,121 +1,135 @@
-# Spring Boot와 Redis로 분산 실시간 상태 머신 구현하기
+# Redis Pub/Sub 으로 분산 실시간 상태 머신 구현하기
 
-> 이 포스트는 멀티-인스턴스 Spring Boot 환경에서 실시간 게임 이벤트를 동기화하기 위해, Redis를 활용한 경량 분산 상태 머신을 직접 구현한 경험을 다룹니다. `Spring Statemachine` 같은 프레임워크 대신 **Java Enum**으로 상태 로직을, **Redis**로 상태 데이터를 관리하고, **Redis Pub/Sub**으로 상태 변경을 전파하여 아키텍처의 복잡성과 외부 의존성을 최소화한 과정을 설명합니다.
+이번 글에서는 사이드 프로젝트 **‘얼음땡(Icebreaker)’**을 개발하면서 겪었던,
+**Redis Pub/Sub 기반의 분산 상태 관리(State Machine) 설계 경험**을 정리해보려 한다.
+이 프로젝트는 단순한 실시간 게임이었지만, 동시에 **“여러 인스턴스 간 상태 동기화”**라는 흥미로운 문제를 다뤘다.
 
----
+## 1️⃣ 배경 — 실시간 게임에서의 상태 전파 문제
 
-## 1. The Challenge: 분산 환경에서의 상태 불일치
+프로젝트의 요구사항은 명확했다.
 
-![분산 시스템 아키텍처](../image/2025-07-20-ice-breaking-platform/1.png)
+-   사용자들이 하나의 방(Room)에 입장한다.
+-   방장은 게임을 시작·정지할 수 있다.
+-   모든 참가자에게 방 상태 변화가 **실시간으로** 전파되어야 한다.
 
-실시간 아이스브레이킹 게임 플랫폼을 개발하면서, 사용자가 늘어남에 따라 서버를 멀티 인스턴스로 확장했습니다. 스케일 아웃 직후, A 인스턴스에 접속한 방장의 게임 시작 이벤트가 B 인스턴스에 있는 사용자에게 전달되지 않는 심각한 상태 불일치 문제를 겪었습니다.
+이때 우리는 Spring 기반의 **STOMP WebSocket**을 사용하고 있었다.
+처음에는 `SimpleBroker` 기반의 인메모리 브로커로 구현했지만,
+곧 한 가지 한계에 부딪혔다.
 
-![분산 시스템 아키텍처](../image/2025-07-20-ice-breaking-platform/3.png)
+> “서로 다른 인스턴스에 연결된 사용자들에게는 메시지가 전달되지 않는다.”
 
-이 문제를 해결하기 위해 다음과 같은 설계 목표를 세웠습니다.
+즉, **멀티 인스턴스 환경에서 방 상태를 브로드캐스트할 수 없는 문제**였다.
+우리가 사용한 구성은 다음과 같았다.
 
--   **단일 진실 공급원 (Single Source of Truth)**: 모든 서버 인스턴스는 언제나 동일한 상태 정보를 공유해야 한다.
--   **실시간 전파**: 상태 변경은 지연 없이 모든 참여자에게 즉시 전파되어야 한다.
--   **순서 보장 및 흐름 제어**: 자동화된 서버 타이머와 사용자의 수동 커맨드가 섞여도, 이벤트는 반드시 정해진 순서대로 처리되어야 한다.
--   **단순한 아키텍처**: 새로운 기술 도입으로 인한 장애 포인트를 최소화한다.
+-   **WAS**: EC2 t2.micro 인스턴스 2대
+-   **Redis**: EC2 t2.micro 1대
 
-## 2. Architecture: Redis와 Enum을 활용한 경량 상태 머신
+MVP 단계였기 때문에 Kafka나 RabbitMQ 같은 MQ를 굳이 도입하기보다는,
+**가볍고 빠른 Redis Pub/Sub**으로 분산 브로드캐스트를 구현해보기로 했다.
 
-위 목표를 달성하기 위해 다음과 같은 기술적 결정을 내렸습니다.
+## 2️⃣ 설계 의도 — 브리지 아키텍처 기반 Pub/Sub
 
-#### 상태 저장 및 전파: Redis
+STOMP는 크게 두 가지 형태로 동작한다.
 
-저희는 이미 캐싱 용도로 Redis를 사용하고 있었습니다. 따라서 외부 의존성을 추가하지 않기 위해 Redis를 두 가지 목적으로 활용했습니다.
+| 유형             | 설명                                  | 예시            |
+| ---------------- | ------------------------------------- | --------------- |
+| **SimpleBroker** | 애플리케이션 내부 인메모리 브로커     | 단일 인스턴스용 |
+| **RelayBroker**  | 외부 MQ(RabbitMQ, ActiveMQ 등)와 연동 | 다중 인스턴스용 |
 
-1.  **상태 저장소**: 각 게임방의 현재 상태(`GameState`)를 Redis에 Key-Value 형태로 저장하여 모든 인스턴스가 공유하는 **단일 진실 공급원**으로 삼았습니다.
-2.  **메시지 브로커**: `RabbitMQ`나 `Kafka` 같은 별도의 메시지 큐 시스템을 도입하는 대신, **Redis의 Pub/Sub 기능**을 사용해 상태 변경 이벤트를 모든 인스턴스에 실시간으로 전파했습니다. 이를 통해 아키텍처를 단순하게 유지하고 운영 부담을 줄일 수 있었습니다.
+다중 인스턴스 환경에서 `SimpleBroker`만 사용하면,
+**다른 인스턴스의 세션 정보에 접근할 수 없기 때문에 메시지 전파가 불가능하다.**
+따라서 이를 해결하기 위해 **Redis Pub/Sub 브리지 아키텍처**를 설계했다.
 
-#### 이벤트 흐름 제어: Custom Enum State Machine
+-   WAS 간 메시지 중계 역할을 Redis가 수행
+-   각 인스턴스는 동일한 Redis 채널에 구독
+-   특정 방 상태 변경 이벤트가 발생하면 Redis에 Publish
+-   구독 중인 다른 인스턴스에서도 동일한 메시지를 수신 후 STOMP로 전달
 
-`Spring Statemachine` 같은 기존 프레임워크는 저희가 해결하려는 문제에 비해 기능이 많고 무겁다고 판단했습니다. 복잡한 설정이나 학습 비용 없이 핵심 기능에만 집중하기 위해, **Java의 Enum**을 사용해 상태별 로직을 캡슐화하는 가벼운 커스텀 상태 머신을 직접 구현했습니다.
+이 구조를 통해 **멀티 인스턴스 간 브로드캐스트 문제를 간단히 해결**할 수 있었다.
 
-### 최종 동작 흐름
+## 3️⃣ 문제 — Redis Pub/Sub의 데이터 유실성
 
-![상태 머신 다이어그램](../image/2025-07-20-ice-breaking-platform/2.png)
+Redis Pub/Sub은 메시지 큐와 달리 **내구성(Persistence)** 이 없다.
+즉, Subscriber가 잠시 끊겨있으면 해당 기간의 메시지는 유실된다.
 
-1.  이벤트가 발생하면, **Redis에서 현재 상태를 조회**합니다.
-2.  커스텀 상태 머신(Enum)이 현재 상태에서 해당 이벤트를 처리할 수 있는지(**Guard**) 검사합니다.
-3.  전환이 가능하다면, **새로운 상태를 Redis에 저장**하여 진실 공급원을 업데이트합니다.
-4.  상태 변경 정보를 **Redis Pub/Sub으로 발행(Publish)** 합니다.
-5.  모든 서버 인스턴스는 이 메시지를 구독(Subscribe)하여, 각자 담당하는 클라이언트들에게 변경된 상태를 전파합니다.
+실시간 게임에서는 모든 참가자가 “현재 방의 상태”를 동일하게 인식해야 하기 때문에,
+메시지 유실은 곧 **게임 동기화 실패**로 이어진다.
 
-## 3. Implementation: Code-Level Deep Dive
+이를 해결하기 위해 다음과 같은 보조 구조를 설계했다.
 
-실제 구현의 핵심은 상태의 **데이터(Data)** 와 **로직(Logic)** 을 분리하는 것입니다. 상태 데이터는 Redis가, 상태 로직은 Enum이 담당합니다.
+-   **Redis String** 구조로 각 방의 현재 상태를 별도로 저장
 
-아래는 `GameStateService`와 `GameState` Enum의 핵심 로직을 보여주는 Pesudo code 입니다.
+    -   예: `room:{roomId} → {"state": "PLAYING", "players": ["user1", "user2"]}`
 
-```java
-/**
- * 각 게임 상태의 로직(Guard, Action)을 정의하는 Enum
- */
-public enum GameState {
-    READY_TO_START { /* ... */ },
-    PROFILE_VIEW {
-        @Override
-        public boolean canTransition(GameContext context, GameEvent event) {
-            // Guard: READY_TO_GAME 이벤트만 허용
-            return event == GameEvent.READY_TO_GAME;
-        }
+-   클라이언트가 방에 재입장하거나 재연결할 경우,
+    Redis에서 최신 상태를 조회하여 복원하도록 구성
 
-        @Override
-        public void onEnter(GameContext context, GameEvent event) {
-            // Action: 상태 진입 시 타이머 시작
-            context.startTimer(30, () -> {
-                context.getStateMachine().handleEvent(GameEvent.READY_TO_GAME, context);
-            });
-        }
-    },
-    // ... 다른 상태들
+즉, Pub/Sub은 “변경 이벤트 전파” 용도로만 사용하고,
+**실제 상태의 Source of Truth는 Redis String으로 관리**했다.
 
-    // 상태별 Guard, Action을 위한 추상 메서드
-    public boolean canTransition(GameContext context, GameEvent event) { return true; } // 기본값: 허용
-    public void onEnter(GameContext context, GameEvent event) { } // 기본값: 동작 없음
-}
+## 4️⃣ 상태 전이 로직 — 간단한 커스텀 상태 머신
 
-/**
- * 상태 머신을 제어하고 Redis와 통신하는 서비스
- */
-@Service
-public class GameStateService {
+방의 상태는 단순한 토글 수준이 아니라, 여러 전이 규칙을 가지고 있었다.
 
-    @Autowired private RedisTemplate<String, GameState> redisTemplate;
-    @Autowired private RedisPublisher redisPublisher;
+예를 들어,
 
-    public void handleEvent(GameEvent event, GameContext context) {
-        String roomKey = "room:" + context.getRoomId();
+-   `WAITING` → `READY` → `PLAYING` → `FINISHED`
+-   각 단계마다 유효한 입력만 전이 가능해야 한다.
 
-        // 1. Redis에서 현재 상태 조회 (Source of Truth)
-        GameState currentState = redisTemplate.opsForValue().get(roomKey);
+초기에는 단순한 `if-else` 분기로 전이를 관리했지만,
+상태가 늘어나자 코드 복잡도가 기하급수적으로 증가했다.
 
-        // 2. Guard: 현재 상태(Enum)의 로직으로 전환 가능 여부 확인
-        if (!currentState.canTransition(context, event)) {
-            // 처리 불가 로직
-            return;
-        }
+이때 **Spring StateMachine 프레임워크**를 검토했다.
+하지만 러닝 커브와 오버헤드가 높았고,
+MVP 단계에서는 필요한 기능만 직접 구현하는 것이 더 효율적이었다.
 
-        // 3. 다음 상태 결정 및 Redis에 저장
-        GameState nextState = findNextState(event);
-        redisTemplate.opsForValue().set(roomKey, nextState);
+그래서 학부 시절 배운 **오토마타(Automata)** 개념을 떠올려,
+아래와 같은 구조를 직접 정의했다.
 
-        // 4. 새로운 상태의 Action 수행
-        nextState.onEnter(context, event);
+| 구성 요소      | 역할                                 |
+| -------------- | ------------------------------------ |
+| **State**      | 방의 현재 상태 (WAITING, PLAYING 등) |
+| **Transition** | 특정 입력(Event)에 따른 상태 전이    |
+| **Guard**      | 전이 가능 여부 검사                  |
+| **Action**     | 전이 시 수행되는 로직                |
 
-        // 5. Redis Pub/Sub으로 상태 변경 전파
-        redisPublisher.publishStateChange(nextState, context.getRoomId());
-    }
-}
-```
+결국, Redis에 저장된 `room:{id}` 상태를 읽고,
+전이 가능 여부를 확인한 뒤 새로운 상태로 업데이트하는
+**경량 커스텀 상태 머신**을 완성했다.
 
-## 4. Key Takeaways
+## 5️⃣ 상태 전이 → 브로드캐스트
 
-이번 경험을 통해 다음과 같은 교훈을 얻었습니다.
+상태가 성공적으로 전이되면,
+해당 이벤트를 모든 참가자에게 브로드캐스트해야 했다.
 
--   **의존성을 최소화하라**: 이미 사용하는 기술(Redis)을 다목적으로 활용하면 아키텍처가 단순해지고 안정성이 높아집니다. 새로운 기술 도입은 항상 신중해야 합니다.
--   **문제에 맞는 도구를 선택하라**: 프레임워크는 강력한 도구지만, 때로는 해결하려는 문제에 비해 과할 수 있습니다. 문제의 본질을 파악하고, 필요하다면 가벼운 솔루션을 직접 만드는 것이 더 효과적일 수 있습니다.
--   **데이터와 로직을 분리하라**: 상태의 데이터(in Redis)와 상태의 행위 로직(in Enum)을 분리함으로써, 테스트가 용이하고 확장 가능한 유연한 설계를 얻을 수 있었습니다.
+이를 위해 내부적으로 **`SimpleStompNotifier`** 콜백을 두었다.
+상태 전이가 발생할 때마다
+해당 방에 속한 모든 세션에게 STOMP 메시지를 전송하는 방식이다.
+
+즉, 하나의 상태 전이가 다음과 같은 흐름으로 이어졌다.
+
+1. Redis에 저장된 방 상태 조회
+2. 상태 머신으로 전이 가능 여부 판단
+3. 새로운 상태 저장
+4. Redis Pub/Sub으로 상태 변경 이벤트 발행
+5. 다른 인스턴스에서 수신 후 STOMP를 통해 클라이언트에게 전달
+
+이 과정을 통해,
+**서버 인스턴스 간의 실시간 상태 동기화**와
+**클라이언트에게의 실시간 전파**를 동시에 달성했다.
+
+## 6️⃣ 트레이드오프와 회고
+
+이 설계는 간결하고 운영 비용이 낮다는 점에서 매우 효율적이었다.
+하지만 동시에, Redis Pub/Sub 특유의 제약도 명확했다.
+
+| 항목            | 장점                            | 한계                            |
+| --------------- | ------------------------------- | ------------------------------- |
+| **구현 복잡도** | 낮음, 빠르게 MVP 구축 가능      | 기능 확장 시 if-else 증가       |
+| **운영 비용**   | MQ 불필요, Redis 단일 운영      | Redis 장애 시 전체 메시지 유실  |
+| **확장성**      | WAS 간 실시간 전파 가능         | Subscriber 수 증가 시 부하 증가 |
+| **복원성**      | Redis String으로 상태 복원 가능 | Pub/Sub 자체는 비내구적         |
+
+특히 Pub/Sub의 “유실성”은 완전히 해결되지 않는다.
+이 문제는 추후 Redis Stream 또는 Kafka를 도입하여
+**“메시지 내구성 + 순서 보장”**을 확보하는 방식으로 개선할 예정이다.
