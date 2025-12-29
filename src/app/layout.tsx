@@ -11,8 +11,11 @@ const notoSansKr = Noto_Sans_KR({
 });
 
 export const metadata: Metadata = {
-  title: 'polyglot-k.github.io',
+  title: '배고픈 개발자의 생존일기',
   description: 'MDX 기반 개인 블로그',
+  icons: {
+    icon: '/profile.png',
+  },
 };
 
 export default function RootLayout({

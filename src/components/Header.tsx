@@ -30,7 +30,7 @@ export function Header() {
             <div className="max-w-2xl mx-auto px-4">
                 <div className="flex h-14 items-center justify-between border-b">
                     <Link href="/" className="text-base font-semibold text-foreground">
-                        polyglot-k.github.io
+                        배고픈 개발자의 생존일기
                     </Link>
 
                     {/* Desktop Navigation */}

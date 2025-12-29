@@ -125,6 +125,11 @@
   }
 }
 
+/* Inline code styling that doesn't affect code blocks */
+:not(pre)>code {
+  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-pink-500 font-medium;
+}
+
 /* Highlight.js Theme - GitHub Dark */
 .hljs {
   color: #c9d1d9;

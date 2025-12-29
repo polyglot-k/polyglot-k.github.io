@@ -65,14 +65,6 @@ const components: MDXRemoteProps['components'] = {
     a: (props) => (
         <a className="text-foreground underline underline-offset-4 hover:text-primary transition-colors" {...props} />
     ),
-    code: (props) => {
-        const className = props.className || '';
-        const isInline = !className.includes('hljs');
-        if (isInline) {
-            return <code className="bg-muted px-1.5 py-0.5 rounded text-sm" {...props} />;
-        }
-        return <code {...props} />;
-    },
     strong: (props) => (
         <strong className="font-semibold text-foreground" {...props} />
     ),
@@ -121,7 +113,7 @@ export default async function BlogPostPage({
                 {/* Table of Contents */}
                 <TableOfContents items={post.toc} />
 
-                <div>
+                <div className="prose prose-neutral dark:prose-invert max-w-none">
                     <MDXRemote
                         source={post.content}
                         options={{ mdxOptions }}
