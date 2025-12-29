@@ -13,13 +13,13 @@ export default function AboutPage() {
                 <h2 className="text-lg font-bold mb-4">Skill</h2>
                 <div className="space-y-6">
                     {skillsData.map((group) => (
-                        <div key={group.category} className="flex flex-col md:flex-row gap-2 md:gap-6">
+                        <div key={group.category} className="flex flex-col md:flex-row gap-2 md:gap-16">
                             <div className="w-full md:w-32 flex-shrink-0">
                                 <span className="text-sm font-medium text-foreground">
                                     {group.category}
                                 </span>
                             </div>
-                            <div className="flex-1 grid grid-cols-2 gap-x-4 md:gap-x-8 gap-y-1">
+                            <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1">
                                 {group.skills.flat().map((skill, idx) => (
                                     <div key={idx} className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground">
                                         <span className="text-muted-foreground/50">·</span>
