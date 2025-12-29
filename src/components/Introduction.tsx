@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { SocialLinks } from '@/components/SocialLinks';
 import { siteConfig } from '@/lib/data';
+import { sendGAEvent } from '@next/third-parties/google';
 
 const FOOD_EMOJIS = ['🍕', '🍔', '🍟', '🌭', '🍱', '🍣', '🍙', '🍗', '🍜', '🍩', '🍦'];
 
@@ -24,6 +25,13 @@ export function Introduction() {
 
     const triggerEasterEgg = () => {
         setIsHungry(true);
+
+        // GA4 이벤트 전송
+        sendGAEvent('event', 'easter_egg_found', {
+            value: 'hungry_gopher',
+            label: '음식비 내림'
+        });
+
         const newEmojis = Array.from({ length: 20 }).map((_, i) => ({
             id: Date.now() + i,
             emoji: FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)],
