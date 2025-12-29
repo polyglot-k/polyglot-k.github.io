@@ -11,7 +11,7 @@ const notoSansKr = Noto_Sans_KR({
 });
 
 export const metadata: Metadata = {
-  title: 'My Blog',
+  title: 'polyglot-k.github.io',
   description: 'MDX 기반 개인 블로그',
 };
 

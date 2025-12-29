@@ -77,15 +77,19 @@ export default function AboutPage() {
                     {awardsData.map((item, idx) => (
                         <div key={idx} className="flex flex-col gap-0.5">
                             <div className="flex items-center justify-between gap-2">
-                                <span className="text-foreground text-sm font-medium md:font-normal truncate">
-                                    {item.title}
-                                </span>
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                    <span className="text-foreground text-sm font-medium md:font-normal truncate">
+                                        {item.title}
+                                    </span>
+                                    <span className="text-foreground text-xs font-semibold flex-shrink-0">
+                                        {item.award}
+                                    </span>
+                                </div>
                                 <span className="text-muted-foreground text-xs flex-shrink-0">
                                     {item.year}
                                 </span>
                             </div>
-                            <div className="flex items-center gap-1.5 md:gap-2 text-xs text-muted-foreground">
-                                <span className="font-semibold text-foreground flex-shrink-0">{item.award}</span>
+                            <div className="flex items-center text-xs text-muted-foreground">
                                 <span className="truncate">({item.org})</span>
                             </div>
                         </div>
