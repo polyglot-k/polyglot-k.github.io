@@ -1,0 +1,176 @@
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { getPostBySlug, getAllPosts } from '@/lib/posts';
+import { MDXRemote, MDXRemoteProps } from 'next-mdx-remote/rsc';
+import rehypeHighlight from 'rehype-highlight';
+import rehypeSlug from 'rehype-slug';
+import { TableOfContents } from '@/components/TableOfContents';
+import { CodeBlock } from '@/components/CodeBlock';
+import { Giscus } from '@/components/Giscus';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+export async function generateStaticParams() {
+    const posts = getAllPosts();
+    return posts.map((post) => ({ slug: post.slug }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params;
+    const post = getPostBySlug(slug);
+
+    if (!post) {
+        return { title: 'Post Not Found' };
+    }
+
+    return {
+        title: post.title,
+        description: post.description,
+    };
+}
+
+const mdxOptions = {
+    rehypePlugins: [rehypeHighlight, rehypeSlug],
+};
+
+const components: MDXRemoteProps['components'] = {
+    pre: (props) => (
+        <CodeBlock className="bg-[#1e1e1e] p-4 rounded-lg overflow-x-auto my-6">
+            {props.children}
+        </CodeBlock>
+    ),
+    h1: (props) => (
+        <h1 className="text-2xl font-bold mt-8 mb-4 text-foreground" {...props} />
+    ),
+    h2: (props) => (
+        <h2 className="text-xl font-bold mt-8 mb-4 pb-2 border-b border-border text-foreground" {...props} />
+    ),
+    h3: (props) => (
+        <h3 className="text-lg font-bold mt-6 mb-3 text-foreground" {...props} />
+    ),
+    p: (props) => (
+        <p className="text-muted-foreground leading-7 mb-4" {...props} />
+    ),
+    ul: (props) => (
+        <ul className="list-disc pl-6 my-4 space-y-1" {...props} />
+    ),
+    ol: (props) => (
+        <ol className="list-decimal pl-6 my-4 space-y-1" {...props} />
+    ),
+    li: (props) => (
+        <li className="text-muted-foreground" {...props} />
+    ),
+    blockquote: (props) => (
+        <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground my-6" {...props} />
+    ),
+    a: (props) => (
+        <a className="text-foreground underline underline-offset-4 hover:text-primary transition-colors" {...props} />
+    ),
+    code: (props) => {
+        const className = props.className || '';
+        const isInline = !className.includes('hljs');
+        if (isInline) {
+            return <code className="bg-muted px-1.5 py-0.5 rounded text-sm" {...props} />;
+        }
+        return <code {...props} />;
+    },
+    strong: (props) => (
+        <strong className="font-semibold text-foreground" {...props} />
+    ),
+};
+
+export default async function BlogPostPage({
+    params,
+}: {
+    params: Promise<{ slug: string }>;
+}) {
+    const { slug } = await params;
+    const post = getPostBySlug(slug);
+
+    if (!post) {
+        notFound();
+    }
+
+    return (
+        <div className="max-w-2xl mx-auto px-4 py-12 md:py-16">
+            <article>
+                <header className="mb-8">
+                    <Link
+                        href="/blog"
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                        ← 블로그로 돌아가기
+                    </Link>
+                    <h1 className="text-2xl md:text-3xl font-bold mt-4 mb-2">{post.title}</h1>
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4">
+                        <time>{post.date}</time>
+                        <span>·</span>
+                        <span>{post.category}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {post.tags.map((tag) => (
+                            <span
+                                key={tag}
+                                className="px-2.5 py-1 text-xs border border-border rounded-full text-muted-foreground"
+                            >
+                                {tag}
+                            </span>
+                        ))}
+                    </div>
+                </header>
+
+                {/* Table of Contents */}
+                <TableOfContents items={post.toc} />
+
+                <div>
+                    <MDXRemote
+                        source={post.content}
+                        options={{ mdxOptions }}
+                        components={components}
+                    />
+                </div>
+            </article>
+
+            {/* Post Navigation */}
+            <nav className="mt-16 pt-8 border-t border-border">
+                <div className="flex flex-col md:flex-row justify-between gap-4">
+                    {post.navigation.prev ? (
+                        <Link
+                            href={`/blog/${post.navigation.prev.slug}`}
+                            className="flex-1 group p-4 border border-border rounded-lg hover:border-foreground transition-colors"
+                        >
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                                <ChevronLeft className="w-3 h-3" />
+                                <span>이전 글</span>
+                            </div>
+                            <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                                {post.navigation.prev.title}
+                            </p>
+                        </Link>
+                    ) : (
+                        <div className="flex-1 hidden md:block" />
+                    )}
+
+                    {post.navigation.next ? (
+                        <Link
+                            href={`/blog/${post.navigation.next.slug}`}
+                            className="flex-1 group p-4 border border-border rounded-lg hover:border-foreground transition-colors text-right"
+                        >
+                            <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground mb-1">
+                                <span>다음 글</span>
+                                <ChevronRight className="w-3 h-3" />
+                            </div>
+                            <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                                {post.navigation.next.title}
+                            </p>
+                        </Link>
+                    ) : (
+                        <div className="flex-1 hidden md:block" />
+                    )}
+                </div>
+            </nav>
+
+            {/* Comments */}
+            <Giscus />
+        </div>
+    );
+}

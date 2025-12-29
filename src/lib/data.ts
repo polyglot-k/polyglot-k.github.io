@@ -1,0 +1,109 @@
+export const siteConfig = {
+    name: 'My Blog',
+    description: 'MDX 기반 개인 블로그',
+    author: {
+        name: '강태현',
+        bio: '백엔드는 보이지 않지만, 사용자 경험을 결정짓는 핵심이라고 생각합니다. 저는 기능 개발뿐 아니라 흐름과 구조를 설계해 UX 임팩트를 만드는 개발자를 지향합니다.\n\n\n기술을 단순히 사용하는 데 그치지 않고, 원리를 이해하고 개선해보는 과정을 좋아합니다.',
+    },
+    links: {
+        github: 'https://github.com/polyglot-k',
+        linkedin: 'https://www.linkedin.com/in/%ED%83%9C%ED%98%84-%EA%B0%95-a96748367/',
+    },
+};
+
+// 기술 스택 (카테고리별)
+export const skillsData = [
+    {
+        category: 'Web Development',
+        skills: [
+            ['Java', 'Javascript', 'Spring', 'Spring Boot', 'Spring Data Jpa', 'Lanchain4j', 'JPA', 'Go', 'Python', 'FastAPI',]
+        ],
+    },
+    {
+        category: 'Database',
+        skills: [
+            ['MySQL', 'Redis', 'RabbitMQ'],
+        ],
+    },
+    {
+        category: 'DevOps & Infra',
+        skills: [
+            ['Docker', 'AWS', 'Git', 'GitHub Actions', 'Locust'],
+        ],
+    },
+];
+
+// Career Timeline
+export const careerData = [
+    {
+        period: '25.06 ~ 25.10',
+        company: '모의 수능 신청 플랫폼 : 모수 (창업, MAU 8000+)',
+        role: 'Backend Engineer',
+    },
+];
+
+// Activity Timeline
+export const activityData = [
+    {
+        period: '25.05 ~ 25.11',
+        company: '카카오 테크 캠퍼스 3기'
+    },
+    {
+        period: '24.06 ~ 25.12',
+        company: 'Google Developer Group on Campus KNU',
+        details: [
+            {
+                title: 'Organizer',
+                items: [
+                    '운영 총괄, 후원사 컨택 및 운영 자금 조달',
+                    '대구광역시 연합 해커톤 달빛톤 행사 기획 및 심사위원장 역할 수행',
+                    '백엔드 직렬 정기 스터디 운영',
+                ],
+            },
+            {
+                title: 'Core Team Member',
+                items: [
+                    'GDGoC KNU DevFest 행사 기획 및 운영',
+                    'GDGoC KNU 비전톤 우수 아이디어상 수상',
+                ],
+            },
+        ],
+    },
+];
+
+// Opensource Contributions (Timeline format)
+export const opensourceData = [
+    {
+        period: '2025.09',
+        company: 'Spring Data JPA',
+        details: [
+            { title: '렌더러 객체 내에 재귀 호출 로직을 반복문 구조로 리팩터링하여 메모리 사용 효율화 (PR#4025)' },
+        ],
+    },
+    {
+        period: '2025.09',
+        company: 'Spring Framework',
+        details: [
+            { title: '기존 String 기반 처리에서 StringBuilder로 변환하여 GC 부담 및 연산 68% 감소 (PR#35510)' },
+        ],
+    },
+    {
+        period: '2024.11',
+        company: 'Spring Framework',
+        details: [
+            { title: '유틸리티 내에 조기 반환 추가, 불필요한 else 블록 제거, 코드 형식 통일 (PR#33903)' },
+            { title: '불필요한 else 문을 제거하고 if 구조를 단순화하여 가독성 향상 (PR#33902)' },
+        ],
+    },
+];
+
+// Awards
+export const awardsData = [
+    { year: '2024.11', title: '대구지역산업 성과교류회', award: '대구시장상', org: '대구디지털혁신진흥원' },
+    { year: '2024.11', title: '대구 산학협력 프로젝트 경진대회', award: '우수상', org: '대구디지털혁신진흥원' },
+    { year: '2024.11', title: 'KIPS 추계통합학술대회', award: '금상', org: '한국정보기술학회' },
+    { year: '2024.09', title: '대구를 빛내는 SW 해커톤', award: '우수상', org: '경북대학교 컴퓨터학부' },
+    { year: '2024.06', title: 'KIPS 춘계통합학술대회', award: '동상', org: '한국정보기술학회' },
+    { year: '2023.11', title: '대구를 빛내는 SW 해커톤', award: '우수상', org: '경북대학교 컴퓨터학부' },
+    { year: '2023.10', title: '대구·경북 공공데이터 활용 해커톤', award: '우수상', org: '경북대학교 소프트웨어 교육원' },
+];
