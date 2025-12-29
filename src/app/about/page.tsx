@@ -4,7 +4,7 @@ import { skillsData, careerData, activityData, opensourceData, awardsData } from
 
 export default function AboutPage() {
     return (
-        <div className="max-w-2xl mx-auto px-4 py-12 md:py-16">
+        <div className="max-w-2xl mx-auto px-4 pt-6 pb-12 md:pt-8 md:pb-16">
             {/* Introduction Section */}
             <Introduction />
 

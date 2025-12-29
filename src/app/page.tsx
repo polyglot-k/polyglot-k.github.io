@@ -8,7 +8,7 @@ export default function Home() {
   const recentPosts = posts.slice(0, 2);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-12 md:py-16">
+    <div className="max-w-2xl mx-auto px-4 pt-6 pb-12 md:pt-8 md:pb-16">
       {/* Introduction Section */}
       <Introduction />
 

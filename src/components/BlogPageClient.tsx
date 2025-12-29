@@ -11,7 +11,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { Filter, X, ChevronDown } from 'lucide-react';
+import { Filter, X, ChevronDown, RotateCcw } from 'lucide-react';
 import type { PostMeta } from '@/lib/posts';
 
 const STORAGE_KEY = 'blog-show-details';
@@ -87,10 +87,15 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
         setCurrentPage(1);
     }, [searchQuery, selectedCategory, selectedTags]);
 
+    // 모달이 열릴 때 태그 카운트 리셋 (선택적 UX, 여기선 유지)
+    // useEffect(() => {
+    //     if (isFilterOpen) setVisibleTagsCount(TAGS_PER_VIEW);
+    // }, [isFilterOpen]);
+
     // 초기 로딩 중에는 스켈레톤 표시
     if (showDetails === null) {
         return (
-            <div className="max-w-2xl mx-auto px-4 py-12 md:py-16">
+            <div className="max-w-2xl mx-auto px-4 pt-6 pb-12 md:pt-8 md:pb-16">
                 <header className="mb-8">
                     <h1 className="text-2xl font-bold mb-1">Blog</h1>
                     <p className="text-sm text-muted-foreground">
@@ -120,7 +125,7 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
     };
 
     return (
-        <div className="max-w-2xl mx-auto px-4 py-12 md:py-16">
+        <div className="max-w-2xl mx-auto px-4 pt-6 pb-12 md:pt-8 md:pb-16">
             <header className="mb-8">
                 <h1 className="text-2xl font-bold mb-1">Blog</h1>
                 <p className="text-sm text-muted-foreground">
@@ -135,35 +140,36 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
                     placeholder="검색어를 입력하세요..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="flex-1 h-10"
+                    className="flex-1 h-10 bg-background border-input focus:ring-1 focus:ring-foreground"
                 />
                 <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
                     <DialogTrigger asChild>
-                        <Button variant="outline" size="icon" className="h-10 w-10 shrink-0 relative">
+                        <Button variant="outline" size="icon" className="h-10 w-10 shrink-0 relative border-input hover:bg-accent hover:text-accent-foreground">
                             <Filter className="h-4 w-4" />
                             {activeFilterCount > 0 && (
-                                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+                                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-foreground text-[10px] text-background font-bold">
                                     {activeFilterCount}
                                 </span>
                             )}
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
-                        <DialogHeader>
-                            <DialogTitle>필터</DialogTitle>
+                    <DialogContent className="sm:max-w-md w-[95vw] rounded-xl overflow-hidden flex flex-col max-h-[85vh] p-0 gap-0 bg-background">
+                        <DialogHeader className="px-6 py-4 border-b border-border">
+                            <DialogTitle className="text-lg font-bold">필터</DialogTitle>
                         </DialogHeader>
-                        <div className="py-4 space-y-8">
+
+                        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-8">
                             {/* Category Filter */}
-                            <div className="space-y-4">
-                                <h3 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                            <div className="space-y-3">
+                                <h3 className="text-sm font-semibold text-foreground">
                                     카테고리
                                 </h3>
                                 <div className="flex flex-wrap gap-2">
                                     <button
                                         onClick={() => setSelectedCategory(null)}
-                                        className={`px-3 py-1.5 text-sm border rounded-full transition-colors ${!selectedCategory
-                                            ? 'bg-foreground text-background border-foreground'
-                                            : 'border-border text-muted-foreground hover:border-foreground hover:text-foreground'
+                                        className={`px-4 py-2 text-sm border rounded-lg transition-all duration-200 ${!selectedCategory
+                                            ? 'bg-foreground text-background border-foreground font-medium shadow-sm'
+                                            : 'bg-background text-muted-foreground border-border hover:border-foreground hover:text-foreground'
                                             }`}
                                     >
                                         전체
@@ -172,9 +178,9 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
                                         <button
                                             key={category}
                                             onClick={() => setSelectedCategory(category === selectedCategory ? null : category)}
-                                            className={`px-3 py-1.5 text-sm border rounded-full transition-colors ${selectedCategory === category
-                                                ? 'bg-foreground text-background border-foreground'
-                                                : 'border-border text-muted-foreground hover:border-foreground hover:text-foreground'
+                                            className={`px-4 py-2 text-sm border rounded-lg transition-all duration-200 ${selectedCategory === category
+                                                ? 'bg-foreground text-background border-foreground font-medium shadow-sm'
+                                                : 'bg-background text-muted-foreground border-border hover:border-foreground hover:text-foreground'
                                                 }`}
                                         >
                                             {category}
@@ -184,8 +190,8 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
                             </div>
 
                             {/* Tags Filter */}
-                            <div className="space-y-4">
-                                <h3 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                            <div className="space-y-3">
+                                <h3 className="text-sm font-semibold text-foreground">
                                     태그
                                 </h3>
                                 <div className="flex flex-wrap gap-2">
@@ -193,9 +199,9 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
                                         <button
                                             key={tag}
                                             onClick={() => toggleTag(tag)}
-                                            className={`px-2.5 py-1 text-xs border rounded-md transition-colors ${selectedTags.includes(tag)
-                                                ? 'bg-primary/10 border-primary text-primary font-medium'
-                                                : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground'
+                                            className={`px-3 py-1.5 text-xs border rounded-md transition-all duration-200 ${selectedTags.includes(tag)
+                                                ? 'bg-foreground text-background border-foreground font-medium'
+                                                : 'bg-background text-muted-foreground border-border hover:border-foreground hover:text-foreground'
                                                 }`}
                                         >
                                             # {tag}
@@ -207,27 +213,33 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
                                         variant="ghost"
                                         size="sm"
                                         onClick={handleLoadMoreTags}
-                                        className="w-full text-xs text-muted-foreground hover:text-foreground h-8"
+                                        className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground h-9 border border-dashed border-border hover:border-foreground/50 hover:bg-transparent"
                                     >
                                         더보기 <ChevronDown className="ml-1 h-3 w-3" />
                                     </Button>
                                 )}
                             </div>
+                        </div>
 
-                            {/* Actions */}
-                            <div className="flex gap-2 pt-4">
-                                <Button className="flex-1" onClick={() => setIsFilterOpen(false)}>
-                                    결과 보기 ({filteredPosts.length})
-                                </Button>
-                                {(selectedCategory || selectedTags.length > 0) && (
-                                    <Button variant="outline" onClick={() => {
-                                        setSelectedCategory(null);
-                                        setSelectedTags([]);
-                                    }}>
-                                        초기화
-                                    </Button>
-                                )}
-                            </div>
+                        {/* Footer Actions */}
+                        <div className="p-4 border-t border-border bg-muted/5 flex gap-3 items-center">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setSelectedCategory(null);
+                                    setSelectedTags([]);
+                                }}
+                                className="h-11 px-4 border-border hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+                            >
+                                <RotateCcw className="h-4 w-4 mr-2" />
+                                초기화
+                            </Button>
+                            <Button
+                                className="flex-1 h-11 bg-foreground text-background hover:bg-foreground/90 font-medium text-base rounded-lg"
+                                onClick={() => setIsFilterOpen(false)}
+                            >
+                                {filteredPosts.length}개 결과 보기
+                            </Button>
                         </div>
                     </DialogContent>
                 </Dialog>
@@ -246,9 +258,9 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
                         </button>
                     </div>
                     {selectedCategory && (
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background border border-border text-sm">
+                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-background border border-border text-xs font-medium shadow-sm">
                             <span className="text-muted-foreground">카테고리:</span>
-                            <span className="font-medium text-foreground">{selectedCategory}</span>
+                            <span className="text-foreground">{selectedCategory}</span>
                             <button
                                 onClick={() => setSelectedCategory(null)}
                                 className="ml-1 text-muted-foreground hover:text-foreground"
@@ -258,9 +270,9 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
                         </div>
                     )}
                     {selectedTags.map(tag => (
-                        <div key={tag} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-background border border-border text-sm">
+                        <div key={tag} className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-background border border-border text-xs font-medium shadow-sm">
                             <span className="text-muted-foreground">#</span>
-                            <span className="font-medium text-foreground">{tag}</span>
+                            <span className="text-foreground">{tag}</span>
                             <button
                                 onClick={() => toggleTag(tag)}
                                 className="ml-1 text-muted-foreground hover:text-foreground"
@@ -279,9 +291,9 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
                     id="showDetails"
                     checked={showDetails}
                     onChange={(e) => handleShowDetailsChange(e.target.checked)}
-                    className="w-4 h-4 rounded border-border accent-foreground"
+                    className="w-4 h-4 rounded border-border accent-foreground cursor-pointer focus:ring-0"
                 />
-                <label htmlFor="showDetails" className="text-sm text-muted-foreground cursor-pointer">
+                <label htmlFor="showDetails" className="text-sm text-muted-foreground cursor-pointer select-none group-hover:text-foreground transition-colors">
                     자세히 보기
                 </label>
             </div>
@@ -300,7 +312,7 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
                         <Button
                             variant="link"
                             onClick={clearFilters}
-                            className="mt-2"
+                            className="mt-2 text-foreground underline-offset-4"
                         >
                             필터 초기화
                         </Button>
@@ -316,10 +328,11 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
                         size="sm"
                         onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
+                        className="border-border"
                     >
                         이전
                     </Button>
-                    <span className="text-sm text-muted-foreground px-4">
+                    <span className="text-sm font-medium text-foreground px-4">
                         {currentPage} / {totalPages}
                     </span>
                     <Button
@@ -327,6 +340,7 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
                         size="sm"
                         onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
+                        className="border-border"
                     >
                         다음
                     </Button>

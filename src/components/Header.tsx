@@ -20,15 +20,40 @@ const navItems = [
 export function Header() {
     const [isOpen, setIsOpen] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
 
     useEffect(() => {
         setMounted(true);
+
+        const handleScroll = () => {
+            if (window.scrollY > 20) {
+                setIsScrolled(true);
+            } else {
+                setIsScrolled(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Sticky wrapper to keep position, inner div for visual styles?
+    // Actually applying styles to the header tag itself tracking `sticky` behavior might be tricky if "sticky" is what triggers the visual change.
+    // User said: "When it starts following (sticky point), give it shadow/shade".
+    // Since we used `sticky top-4`, it starts sticking when scroll reaches top-4.
+    // Actually, `sticky` stays in flow until scrolled to.
+    // If it's at the very top (mt-4 or whatever), `scrollY` reflects that.
+    // Let's assume when scrollY > 0 or small threshold, we trigger the "floating active" look.
+
     return (
-        <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-sm">
-            <div className="max-w-2xl mx-auto px-4">
-                <div className="flex h-14 items-center justify-between border-b">
+        <header
+            className={`sticky top-0 z-50 w-full max-w-[40rem] mx-auto mb-2 transition-all duration-300 ease-in-out border rounded-md ${isScrolled
+                ? 'bg-background/5 backdrop-blur-sm border-border shadow-lg supports-[backdrop-filter]:bg-background/5'
+                : 'bg-transparent border-border/50 shadow-none backdrop-blur-none'
+                }`}
+        >
+            <div className="px-6">
+                <div className="flex h-14 items-center justify-between">
                     <Link href="/" className="text-base font-semibold text-foreground">
                         배고픈 개발자의 생존일기
                     </Link>
