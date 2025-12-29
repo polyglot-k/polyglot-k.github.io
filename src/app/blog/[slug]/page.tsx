@@ -39,34 +39,48 @@ const components: MDXRemoteProps['components'] = {
         </CodeBlock>
     ),
     h1: (props) => (
-        <h1 className="text-2xl font-bold mt-8 mb-4 text-foreground" {...props} />
+        <h1 className="text-2xl md:text-3xl font-bold mt-12 mb-6 pb-4 border-b border-border text-foreground" {...props} />
     ),
     h2: (props) => (
-        <h2 className="text-xl font-bold mt-8 mb-4 pb-2 border-b border-border text-foreground" {...props} />
+        <h2 className="text-xl md:text-2xl font-bold mt-10 mb-4 text-foreground" {...props} />
     ),
     h3: (props) => (
-        <h3 className="text-lg font-bold mt-6 mb-3 text-foreground" {...props} />
+        <h3 className="text-lg md:text-xl font-bold mt-8 mb-3 text-foreground" {...props} />
     ),
     p: (props) => (
-        <p className="text-muted-foreground leading-7 mb-4" {...props} />
+        <p className="text-muted-foreground leading-8 mb-6 text-[17px]" {...props} />
     ),
     ul: (props) => (
-        <ul className="list-disc pl-6 my-4 space-y-1" {...props} />
+        <ul className="list-disc pl-6 my-6 space-y-2 leading-7" {...props} />
     ),
     ol: (props) => (
-        <ol className="list-decimal pl-6 my-4 space-y-1" {...props} />
+        <ol className="list-decimal pl-6 my-6 space-y-2 leading-7" {...props} />
     ),
     li: (props) => (
-        <li className="text-muted-foreground" {...props} />
+        <li className="text-muted-foreground pl-1" {...props} />
     ),
     blockquote: (props) => (
-        <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground my-6" {...props} />
+        <blockquote className="border-l-4 border-primary bg-muted/50 p-4 rounded-r-lg italic text-muted-foreground my-6" {...props} />
     ),
     a: (props) => (
-        <a className="text-foreground underline underline-offset-4 hover:text-primary transition-colors" {...props} />
+        <a className="text-primary font-medium underline underline-offset-4 decoration-primary/30 hover:decoration-primary transition-all" {...props} />
     ),
     strong: (props) => (
-        <strong className="font-semibold text-foreground" {...props} />
+        <strong className="font-bold text-foreground" {...props} />
+    ),
+    hr: (props) => (
+        <hr className="my-8 border-border" {...props} />
+    ),
+    table: (props) => (
+        <div className="my-6 w-full overflow-y-auto">
+            <table className="w-full text-sm" {...props} />
+        </div>
+    ),
+    th: (props) => (
+        <th className="border-b border-border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right" {...props} />
+    ),
+    td: (props) => (
+        <td className="border-b border-border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right" {...props} />
     ),
 };
 

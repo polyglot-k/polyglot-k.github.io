@@ -47,8 +47,7 @@ export function TableOfContents({ items }: TableOfContentsProps) {
                                 )}
                                 <a
                                     href={`#${item.id}`}
-                                    className={`text-sm hover:text-primary transition-colors ${isTopLevel ? 'text-foreground font-medium' : 'text-muted-foreground'
-                                        }`}
+                                    className="text-sm text-muted-foreground hover:text-primary transition-colors block py-0.5"
                                 >
                                     {item.text}
                                 </a>

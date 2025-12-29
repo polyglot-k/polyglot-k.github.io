@@ -127,7 +127,21 @@
 
 /* Inline code styling that doesn't affect code blocks */
 :not(pre)>code {
-  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-pink-500 font-medium;
+  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-pink-500 font-semibold border border-border/50;
+}
+
+:not(pre)>code::before,
+:not(pre)>code::after {
+  content: none;
+}
+
+/* Initial Tailwind Typography blockquote reset */
+.prose blockquote p:first-of-type::before {
+  content: none;
+}
+
+.prose blockquote p:last-of-type::after {
+  content: none;
 }
 
 /* Highlight.js Theme - GitHub Dark */
