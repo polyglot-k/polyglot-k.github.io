@@ -29,6 +29,8 @@ jobs:
         run: yarn install
       - name: Build
         run: yarn build
+        env:
+          NEXT_PUBLIC_GA_ID: ${{ secrets.NEXT_PUBLIC_GA_ID }}
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
