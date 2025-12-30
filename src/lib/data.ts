@@ -99,7 +99,14 @@ export const careerData = [
 export const activityData = [
     {
         period: '25.05 ~ 25.11',
-        company: '카카오 테크 캠퍼스 3기'
+        company: '카카오 테크 캠퍼스 3기',
+        details: [{
+            title: 'Backend 과정',
+            items: [
+                '카테캠 아이디어톤 참여 및 1등 수상 (얼음 땡 - 아이스 브레이킹 게이밍 서비스)',
+                'Java, Spring 교육과정 참여',
+            ],
+        },]
     },
     {
         period: '24.06 ~ 25.12',
