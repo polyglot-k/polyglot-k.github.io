@@ -1,4 +1,8 @@
 import Link from 'next/link';
+import React from 'react';
+import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
+import { remarkAlert } from 'remark-github-blockquote-alert';
 import { notFound } from 'next/navigation';
 import { getPostBySlug, getAllPosts } from '@/lib/posts';
 import { MDXRemote, MDXRemoteProps } from 'next-mdx-remote/rsc';
@@ -29,7 +33,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 const mdxOptions = {
+    remarkPlugins: [remarkGfm, remarkBreaks, remarkAlert],
     rehypePlugins: [rehypeHighlight, rehypeSlug],
+};
+
+
+import { Info, Lightbulb, AlertCircle, AlertTriangle, ShieldAlert } from 'lucide-react';
+
+const alertIcons = {
+    note: Info,
+    tip: Lightbulb,
+    important: AlertCircle,
+    warning: AlertTriangle,
+    caution: ShieldAlert,
 };
 
 const components: MDXRemoteProps['components'] = {
@@ -59,9 +75,41 @@ const components: MDXRemoteProps['components'] = {
     li: (props) => (
         <li className="text-muted-foreground pl-1" {...props} />
     ),
-    blockquote: (props) => (
-        <blockquote className="border-l-4 border-primary bg-muted/50 p-4 rounded-r-lg italic text-muted-foreground my-6" {...props} />
-    ),
+    blockquote: (props) => {
+        const className = props.className || '';
+        const isAlert = className.includes('markdown-alert');
+
+        if (isAlert) {
+            const typeMatch = className.match(/markdown-alert-(\w+)/);
+            const type = typeMatch ? typeMatch[1] : 'note';
+            const Icon = alertIcons[type as keyof typeof alertIcons] || Info;
+
+            const childrenArray = React.Children.toArray(props.children);
+            const titleElement = childrenArray[0] as React.ReactElement<{ children: React.ReactNode }>;
+            const contentElements = childrenArray.slice(1);
+
+            // Strip SVGs (potential icons) from the title
+            const titleChildren = React.Children.toArray(titleElement.props.children).filter(
+                (child) => typeof child === 'string' || (React.isValidElement(child) && child.type !== 'svg')
+            );
+
+            return (
+                <div className={className}>
+                    <div className="markdown-alert-title">
+                        {type}
+                    </div>
+                    {contentElements}
+                </div>
+            );
+        }
+
+        return (
+            <blockquote
+                className="border-l-4 border-primary bg-muted/50 p-4 rounded-r-lg italic text-muted-foreground my-6"
+                {...props}
+            />
+        );
+    },
     a: (props) => (
         <a className="text-primary font-medium underline underline-offset-4 decoration-primary/30 hover:decoration-primary transition-all" {...props} />
     ),

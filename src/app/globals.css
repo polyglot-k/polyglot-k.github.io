@@ -144,6 +144,133 @@
   content: none;
 }
 
+/* GitHub Alerts Styling - Harmonized & Balanced */
+.markdown-alert {
+  @apply flex flex-col pl-7 pr-6 py-3 my-8 border-l-[3px] rounded-r-lg;
+  font-style: normal !important;
+}
+
+.markdown-alert-title {
+  @apply flex items-center gap-2 mt-0.5 mb-1 text-[0.925rem] font-extrabold tracking-tight uppercase leading-none italic;
+  font-family: var(--font-sans);
+}
+
+/* Style alert icons beautifully */
+.markdown-alert-title svg {
+  @apply w-4 h-4 flex-shrink-0;
+  stroke-width: 0.5px;
+}
+
+.markdown-alert p {
+  @apply leading-relaxed mb-2 text-[1rem];
+  color: var(--foreground) !important;
+  font-weight: 400;
+}
+
+.markdown-alert p:last-child {
+  @apply mb-0;
+}
+
+.markdown-alert blockquote {
+  @apply border-none p-0 m-0 bg-transparent rotate-0;
+}
+
+/* Alert Types - Synchronized Colors & Subtle Backgrounds */
+.markdown-alert-note {
+  @apply border-[#0969da] bg-[#0969da]/3 dark:bg-[#58a6ff]/3;
+}
+
+.markdown-alert-note .markdown-alert-title {
+  @apply text-[#0969da] dark:text-[#58a6ff];
+  color: #0969da !important;
+}
+
+.markdown-alert-note .markdown-alert-title svg {
+  @apply text-[#0969da] dark:text-[#58a6ff];
+  color: #0969da !important;
+  stroke: currentColor !important;
+}
+
+:is(.dark) .markdown-alert-note .markdown-alert-title {
+  color: #58a6ff !important;
+}
+
+.markdown-alert-tip {
+  @apply border-[#1a7f37] bg-[#1a7f37]/3 dark:bg-[#3fb950]/3;
+}
+
+.markdown-alert-tip .markdown-alert-title {
+  @apply text-[#1a7f37] dark:text-[#3fb950];
+  color: #1a7f37 !important;
+}
+
+.markdown-alert-tip .markdown-alert-title svg {
+  @apply text-[#1a7f37] dark:text-[#3fb950];
+  color: #1a7f37 !important;
+  stroke: currentColor !important;
+}
+
+:is(.dark) .markdown-alert-tip .markdown-alert-title {
+  color: #3fb950 !important;
+}
+
+.markdown-alert-important {
+  @apply border-[#8250df] bg-[#8250df]/3 dark:bg-[#bc8cff]/3;
+}
+
+.markdown-alert-important .markdown-alert-title {
+  @apply text-[#8250df] dark:text-[#bc8cff];
+  color: #8250df !important;
+}
+
+.markdown-alert-important .markdown-alert-title svg {
+  @apply text-[#8250df] dark:text-[#bc8cff];
+  color: #8250df !important;
+  stroke: currentColor !important;
+}
+
+:is(.dark) .markdown-alert-important .markdown-alert-title {
+  color: #bc8cff !important;
+}
+
+.markdown-alert-warning {
+  @apply border-[#9a6700] bg-[#9a6700]/3 dark:bg-[#d29922]/3;
+}
+
+.markdown-alert-warning .markdown-alert-title {
+  @apply text-[#9a6700] dark:text-[#d29922];
+  color: #9a6700 !important;
+}
+
+.markdown-alert-warning .markdown-alert-title svg {
+  @apply text-[#9a6700] dark:text-[#d29922];
+  color: #9a6700 !important;
+  stroke: currentColor !important;
+}
+
+:is(.dark) .markdown-alert-warning .markdown-alert-title {
+  color: #d29922 !important;
+}
+
+.markdown-alert-caution {
+  @apply border-[#cf222e] bg-[#cf222e]/3 dark:bg-[#f85149]/3;
+}
+
+.markdown-alert-caution .markdown-alert-title {
+  @apply text-[#cf222e] dark:text-[#f85149];
+  color: #cf222e !important;
+}
+
+.markdown-alert-caution .markdown-alert-title svg {
+  @apply text-[#cf222e] dark:text-[#f85149];
+  color: #cf222e !important;
+  stroke: currentColor !important;
+}
+
+:is(.dark) .markdown-alert-caution .markdown-alert-title {
+  color: #f85149 !important;
+}
+
 /* Highlight.js Theme - GitHub Dark */
 .hljs {
   color: #c9d1d9;

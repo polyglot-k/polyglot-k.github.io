@@ -1,0 +1,170 @@
+---
+title: "결제 시스템에서 Idempotency 설계하기 – 중복 결제 요청을 막는 방법"
+description: "Idempotency Key를 사용하여 중복 결제 요청을 처리하는 방법을 알아봅니다."
+date: "2025-12-30"
+category: "Backend Engineering"
+tags:
+  - Idempotency
+  - 결제 시스템
+  - 중복 요청 처리
+---
+
+모수라는 모의수능 신청 서비스를 개발하면서 발생할 수 있는 중복 결제 문제를 해결하기 위해 고민했던 내용과 그 해결 방법을 정리해보았습니다.
+
+![rfc 멱등관련 문서](/images/payment-system-idempotency-design-prevent-duplicate-payments01.png)
+
+위의 표는 RFC 7231 스펙 문서에 명시된 HTTP 메소드의 특성입니다. 여기서 **POST 메소드**를 주목해 보면, 멱등성(Idempotent)이 지켜지지 않는 것을 볼 수 있습니다.
+
+결제와 같이 정합성이 중요한 시스템에서 이를 방치하면 이중 결제와 같은 치명적인 문제가 발생할 수 있습니다. 따라서 시스템의 안정성을 위해 **Idempotency(멱등성)** 를 적용하는 설계가 반드시 필요합니다.
+
+
+# Idempotency(멱등성)란 무엇인가?
+
+**Idempotency**는 동일한 요청을 여러 번 수행하더라도 결과가 항상 같으며, 서버의 상태 또한 처음 한 번의 요청과 동일하게 유지되는 특성을 의미합니다.
+
+*   **일반적인 POST 요청**: 게시물 작성 요청을 계속 보내면, 보낸 횟수만큼 동일한 게시물이 생성됩니다. (멱등성 없음)
+*   **Idempotency가 적용된 요청**: 동일한 요청을 수차례 보내더라도 서버는 이를 감지하여 단 한 번만 처리하거나, 이미 처리된 결과를 반환합니다.
+# Idempotency Key는 누가, 어떻게 생성해야 할까?
+
+멱등성을 구현하기 위해 가장 중요한 요소는 `Idempotency Key(멱등키)`입니다.
+
+이 키는 반드시 클라이언트가 생성해야 합니다. 만약 서버가 키를 생성한다면, 클라이언트가 요청을 보낸 후 응답을 받지 못한 채 재시도할 때마다 새로운 키가 발급되어 중복 결제가 발생할 수 있기 때문입니다. 클라이언트가 특정 결제 시도에 대해 고유한 키를 들고 있어야 서버가 재시도된 요청임을 판단할 수 있습니다.
+
+멱등키는 전역적으로 유일함을 보장해야 하므로 주로 UUID v4를 사용하여 생성하며, 이는 128비트의 무작위 숫자로 구성되어 충돌 가능성이 사실상 제로에 가까워 안전하게 중복 요청을 식별할 수 있습니다.
+
+
+# Idempotency를 통한 Post 요청 중복 방지
+
+중복 요청을 막기 위해 주로 사용되는 두 가지 접근 방식을 코드로 살펴보겠습니다.
+
+## 1. Redis(Cache)를 활용한 Idempotency Key 관리
+주로 짧은 시간 내의 중복 클릭 방지나 일시적인 요청 제어에 적합합니다.
+
+```java
+@RestController
+@RequestMapping("/api/v1/payments")
+@RequiredArgsConstructor
+class PaymentController {
+    private final PaymentService paymentService;
+
+    @PostMapping
+    public ResponseEntity<String> createPayment(
+        @RequestHeader("Idempotency-Key") String idempotencyKey,
+        @RequestBody PaymentRequest request
+    ) {
+        paymentService.createPayment(idempotencyKey, request);
+        return ResponseEntity.ok("결제가 성공적으로 처리되었습니다.");
+    }
+}
+```
+
+```java
+@Service
+@RequiredArgsConstructor
+class PaymentService {
+    private final RedisRepository redisRepository;
+
+    public void createPayment(String key, PaymentRequest request) {
+        // 1. Redis의 setIfAbsent를 사용하여 원자적(Atomic)으로 키 확인 및 저장
+        // 처리 중 상태(IN_PROGRESS)를 저장하여 동시성 이슈를 방지합니다.
+        boolean isFirstRequest = redisRepository.setIfAbsent(key, "IN_PROGRESS", Duration.ofMinutes(10));
+        
+        if (!isFirstRequest) {
+            throw new DuplicateRequestException("이미 처리 중이거나 완료된 요청입니다.");
+        }
+
+        try {
+            // 실제 결제 로직 수행...
+            redisRepository.set(key, "COMPLETED", Duration.ofHours(24));
+        } catch (Exception e) {
+            redisRepository.delete(key); // 실패 시 재시도가 가능하도록 키 삭제
+            throw e;
+        }
+    }
+}
+```
+
+빠르지만 휘발성인 Redis와 달리, **결제 이력 자체가 법적 증빙**이 되어야 하거나 장기간 정합성 보장이 필요하다면 RDB를 사용합니다.
+
+## 2. RDB 테이블을 활용한 영구적 멱등성 보장
+결제 이력과 함께 멱등성 키를 보관하여, 시간이 지나도 동일한 요청에 대해 일관된 응답을 주어야 할 때 사용합니다.
+
+```java
+@Entity
+@Table(name = "idempotency_histories")
+class IdempotencyHistory {
+    @Id
+    private String idempotencyKey; // 클라이언트가 보낸 고유 키 (UUID)
+    
+    private String responseStatus;
+    private String responseBody;
+    private LocalDateTime createdAt;
+}
+```
+
+```java
+@Service
+@RequiredArgsConstructor
+class PaymentService {
+    private final IdempotencyRepository idempotencyRepository;
+
+    @Transactional
+    public void createPayment(String key, PaymentRequest request) {
+        // 1. DB에 해당 키가 이미 존재하는지 확인
+        Optional<IdempotencyHistory> history = idempotencyRepository.findById(key);
+        if (history.isPresent()) {
+            // 이미 성공한 요청이라면 기존 응답을 반환하거나 예외를 발생시킴
+            throw new DuplicateRequestException("중복된 결제 요청입니다.");
+        }
+        
+        // 2. 비즈니스 로직 수행 및 멱등성 키 저장
+        savePayment(request);
+        idempotencyRepository.save(new IdempotencyHistory(key, "SUCCESS", ...));
+    }
+}
+```
+
+# Idempotency 구현 방식 비교
+
+어떤 저장소를 선택하느냐에 따라 보장할 수 있는 정합성과 성능의 트레이드오프가 있습니다.
+
+| 비교 항목 | Redis (Cache) | RDB (Database) |
+| :--- | :--- | :--- |
+| **속도/성능** | 매우 빠름 (In-memory) | 상대적으로 느림 (Disk I/O) |
+| **영속성** | 휘발성 가능성 있음 | 영구 보관 (강력한 정합성) |
+| **주요 용도** | 단순 중복 클릭 방지, 단기 TTL | 정산, 결제 등 법적 증빙이 필요한 데이터 |
+| **데이터 크기** | 메모리 제한 (최소한의 키만 권장) | 비교적 자유로움 (결제 이력과 연계 가능) |
+
+
+# Idempotency Key의 생명주기(TTL)와 스코프
+
+Idempotency Key를 무한정 보관할 수는 없습니다. 서버 리소스를 효율적으로 관리하기 위해 적절한 **생명주기(Expiration Time)** 를 설정해야 합니다.
+
+## TTL을 결정하는 3가지 기준
+
+1.  **비즈니스 프로세스 시간**: 결제 요청이 시작되어 PG사로부터 최종 결과를 받기까지 걸리는 최대 시간을 고려해야 합니다. (보통 10~30분)
+2.  **클라이언트 재시도 윈도우**: 클라이언트가 네트워크 오류를 인지하고 자동으로 재시도할 수 있는 범위를 설정합니다. (예: 1시간 이내 재시도만 허용)
+3.  **법적/운영적 요구사항**: 결제와 같이 민감한 데이터는 정산이 완료될 때까지(D+N일) 중복 요청이 들어와도 안전하도록 길게 잡기도 하지만, 이때는 Cache가 아닌 DB에 저장합니다.
+
+> [!TIP]
+> **Redis 기반**: 10분 ~ 1시간 (단기 차단)
+> **DB 기반**: 24시간 ~ 수일 (영구적 정합성)
+
+
+# 분산 시스템에서의 멱등성 확장
+
+단일 서버에서의 결제 처리를 넘어, **주문(Order) 서비스**와 **결제(Payment) 서비스**가 나누어진 MSA 환경에서는 멱등성이 더 복잡해집니다.
+
+## Transactional Outbox 패턴과의 시너지
+
+주문이 완료되었을 때 결제 요청 메시지를 발행해야 한다면, **Transactional Outbox 패턴**을 사용합니다. 이때 발행되는 메시지 자체에 `idempotency_key`를 포함시켜야 합니다.
+
+1.  **주문 서비스**: 주문 정보를 DB에 저장하고, 동일한 트랜잭션 내에서 `idempotency_key`를 포함한 결제 요청 메시지를 Outbox 테이블에 저장합니다.
+2.  **메시지 릴레이(Relay)**: Outbox 테이블의 메시지를 읽어 결제 서비스로 전달합니다.
+3.  **결제 서비스**: 수신한 메시지의 `idempotency_key`를 확인하여 이미 처리된 주문인지 판단합니다. (중복 처리 방지)
+
+이 구조를 통해 **"최소 한 번 이상 전달(At-least-once delivery)"** 되는 분산 환경에서도 시스템 전체의 멱등성을 보장할 수 있습니다.
+
+# 결론
+
+멱등성 설계는 단순히 중복 데이터를 막는 기술적 장치를 넘어, **사용자의 신뢰**를 지키는 핵심 로직입니다. 
