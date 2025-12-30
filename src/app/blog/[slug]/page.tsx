@@ -105,7 +105,7 @@ const components: MDXRemoteProps['components'] = {
 
         return (
             <blockquote
-                className="border-l-4 border-primary bg-muted/50 p-4 rounded-r-lg italic text-muted-foreground my-6"
+                className="border-l-[3px] border-primary bg-muted/30 pl-7 pr-6 py-3 rounded-r-lg text-muted-foreground my-8"
                 {...props}
             />
         );

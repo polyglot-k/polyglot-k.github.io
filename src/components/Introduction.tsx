@@ -7,16 +7,37 @@ import { siteConfig } from '@/lib/data';
 import { sendGAEvent } from '@next/third-parties/google';
 
 const FOOD_EMOJIS = ['🍕', '🍔', '🍟', '🌭', '🍱', '🍣', '🍙', '🍗', '🍜', '🍩', '🍦'];
+const SKULL_EMOJIS = ['💀', '☠️', '🦴', '👻', '🪦', '⚰️', '🖤'];
+
+const PROFILE_STORAGE_KEY = 'profile_state';
 
 export function Introduction() {
     const [clickCount, setClickCount] = useState(0);
-    const [isHungry, setIsHungry] = useState(false);
+    const [isAnimating, setIsAnimating] = useState(false);
+    const [animationMessage, setAnimationMessage] = useState('');
     const [fallingEmojis, setFallingEmojis] = useState<{ id: number; emoji: string; left: number }[]>([]);
+    const [isSectionHovered, setIsSectionHovered] = useState(false);
+    const [isFull, setIsFull] = useState(false); // false: 기본(profile1/2), true: 배부름(profile3/4)
+
+    // localStorage에서 프로필 상태 불러오기
+    useEffect(() => {
+        const savedState = localStorage.getItem(PROFILE_STORAGE_KEY);
+        if (savedState === 'full') {
+            setIsFull(true);
+        }
+    }, []);
+
+    // 프로필 상태 저장
+    const saveProfileState = (full: boolean) => {
+        localStorage.setItem(PROFILE_STORAGE_KEY, full ? 'full' : 'default');
+    };
 
     const handleProfileClick = () => {
+        // 애니메이션 중에는 클릭 무시
+        if (isAnimating) return;
+
         setClickCount(prev => prev + 1);
 
-        // 클릭할 때마다 고퍼가 살짝 들썩이는 효과 (isHungry 상태 활용 가능)
         if (clickCount + 1 >= 7) {
             triggerEasterEgg();
             setClickCount(0);
@@ -24,29 +45,69 @@ export function Introduction() {
     };
 
     const triggerEasterEgg = () => {
-        setIsHungry(true);
+        setIsAnimating(true);
 
-        // GA4 이벤트 전송
-        sendGAEvent('event', 'easter_egg_found', {
-            value: 'hungry_gopher',
-            label: '음식비 내림'
-        });
+        if (!isFull) {
+            // 기본 상태 → 배부름 상태로 전환
+            setIsFull(true);
+            saveProfileState(true);
+            setAnimationMessage('배불렁!! 🍖');
 
-        const newEmojis = Array.from({ length: 20 }).map((_, i) => ({
-            id: Date.now() + i,
-            emoji: FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)],
-            left: Math.random() * 100
-        }));
-        setFallingEmojis(newEmojis);
+            sendGAEvent('event', 'easter_egg_found', {
+                value: 'full_gopher',
+                label: '배불렁'
+            });
+
+            const newEmojis = Array.from({ length: 20 }).map((_, i) => ({
+                id: Date.now() + i,
+                emoji: FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)],
+                left: Math.random() * 100
+            }));
+            setFallingEmojis(newEmojis);
+        } else {
+            // 배부름 상태 → 그대로 유지하면서 "그만" 애니메이션만 실행
+            setAnimationMessage('그만!! 💀');
+
+            sendGAEvent('event', 'easter_egg_found', {
+                value: 'stop_gopher',
+                label: '그만'
+            });
+
+            const newEmojis = Array.from({ length: 20 }).map((_, i) => ({
+                id: Date.now() + i,
+                emoji: SKULL_EMOJIS[Math.floor(Math.random() * SKULL_EMOJIS.length)],
+                left: Math.random() * 100
+            }));
+            setFallingEmojis(newEmojis);
+        }
 
         setTimeout(() => {
-            setIsHungry(false);
+            setIsAnimating(false);
             setFallingEmojis([]);
+            setAnimationMessage('');
         }, 3000);
     };
 
+    // 현재 상태에 따른 프로필 이미지 결정
+    const getProfileImage = () => {
+        if (isFull) {
+            return isSectionHovered ? "/profile4.png" : "/profile3.png";
+        }
+        return isSectionHovered ? "/profile2.png" : "/profile.png";
+    };
+
+    // 커서는 항상 도넛
+    const getCursorEmoji = () => {
+        return '🍩';
+    };
+
     return (
-        <section className="mb-12 p-4 md:p-6 border border-border/50 hover:border-foreground/20 hover:bg-muted/40 hover:shadow-sm hover:-translate-y-1 rounded-lg transition-all duration-500 group relative overflow-hidden">
+        <section
+            className="mb-12 p-4 md:p-6 border border-border/50 hover:border-foreground/20 hover:bg-muted/40 hover:shadow-sm hover:-translate-y-1 rounded-lg transition-all duration-500 group relative overflow-hidden"
+            style={{ cursor: isSectionHovered ? `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' style='font-size:24px'><text y='24'>${getCursorEmoji()}</text></svg>"), auto` : 'default' }}
+            onMouseEnter={() => setIsSectionHovered(true)}
+            onMouseLeave={() => setIsSectionHovered(false)}
+        >
             {/* Easter Egg Emojis */}
             {fallingEmojis.map((item) => (
                 <span
@@ -65,13 +126,14 @@ export function Introduction() {
             <div className="flex items-center gap-4 mb-4">
                 <div
                     onClick={handleProfileClick}
-                    className={`relative w-20 h-20 md:w-28 md:h-28 flex-shrink-0 overflow-hidden rounded-full border border-border bg-muted cursor-pointer transition-transform active:scale-95 ${isHungry ? 'animate-bounce' : ''}`}
+                    className={`relative w-20 h-20 md:w-28 md:h-28 flex-shrink-0 overflow-hidden rounded-full border border-border bg-muted transition-transform active:scale-95 ${isAnimating ? 'animate-bounce' : ''}`}
+                    style={{ cursor: isSectionHovered ? 'inherit' : 'pointer' }}
                 >
                     <Image
-                        src="/profile.png"
+                        src={getProfileImage()}
                         alt={siteConfig.author.name}
                         fill
-                        className="object-cover"
+                        className="object-cover transition-all duration-300"
                         priority
                     />
                 </div>
@@ -85,12 +147,11 @@ export function Introduction() {
             </p>
             <SocialLinks github={siteConfig.links.github} linkedin={siteConfig.links.linkedin} />
 
-            {isHungry && (
+            {isAnimating && animationMessage && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-[1px] pointer-events-none">
-                    <span className="text-4xl font-bold animate-pulse text-foreground/40">배고파요!! 🍖</span>
+                    <span className="text-4xl font-bold animate-pulse text-foreground/40">{animationMessage}</span>
                 </div>
             )}
         </section>
     );
 }
-
