@@ -10,6 +10,8 @@ const FOOD_EMOJIS = ['🍕', '🍔', '🍟', '🌭', '🍱', '🍣', '🍙', '�
 const SKULL_EMOJIS = ['💀', '☠️', '🦴', '👻', '🪦', '⚰️', '🖤'];
 
 const PROFILE_STORAGE_KEY = 'profile_state';
+const PROFILE_TIMESTAMP_KEY = 'profile_full_timestamp';
+const PROFILE_TTL_MS = 30 * 1000; // 30초
 
 export function Introduction() {
     const [clickCount, setClickCount] = useState(0);
@@ -19,17 +21,45 @@ export function Introduction() {
     const [isSectionHovered, setIsSectionHovered] = useState(false);
     const [isFull, setIsFull] = useState(false); // false: 기본(profile1/2), true: 배부름(profile3/4)
 
-    // localStorage에서 프로필 상태 불러오기
+    // localStorage에서 프로필 상태 불러오기 (TTL 체크)
     useEffect(() => {
         const savedState = localStorage.getItem(PROFILE_STORAGE_KEY);
-        if (savedState === 'full') {
-            setIsFull(true);
+        const savedTimestamp = localStorage.getItem(PROFILE_TIMESTAMP_KEY);
+
+        if (savedState === 'full' && savedTimestamp) {
+            const timestamp = parseInt(savedTimestamp, 10);
+            const now = Date.now();
+
+            if (now - timestamp < PROFILE_TTL_MS) {
+                // TTL 내: 배부름 상태 유지
+                setIsFull(true);
+
+                // 남은 시간 후 자동 복구
+                const remainingTime = PROFILE_TTL_MS - (now - timestamp);
+                const timer = setTimeout(() => {
+                    setIsFull(false);
+                    localStorage.removeItem(PROFILE_STORAGE_KEY);
+                    localStorage.removeItem(PROFILE_TIMESTAMP_KEY);
+                }, remainingTime);
+
+                return () => clearTimeout(timer);
+            } else {
+                // TTL 만료: 기본 상태로 복구
+                localStorage.removeItem(PROFILE_STORAGE_KEY);
+                localStorage.removeItem(PROFILE_TIMESTAMP_KEY);
+            }
         }
     }, []);
 
-    // 프로필 상태 저장
+    // 프로필 상태 저장 (타임스탬프 포함)
     const saveProfileState = (full: boolean) => {
-        localStorage.setItem(PROFILE_STORAGE_KEY, full ? 'full' : 'default');
+        if (full) {
+            localStorage.setItem(PROFILE_STORAGE_KEY, 'full');
+            localStorage.setItem(PROFILE_TIMESTAMP_KEY, Date.now().toString());
+        } else {
+            localStorage.removeItem(PROFILE_STORAGE_KEY);
+            localStorage.removeItem(PROFILE_TIMESTAMP_KEY);
+        }
     };
 
     const handleProfileClick = () => {
