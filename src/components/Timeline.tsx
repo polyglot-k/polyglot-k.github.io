@@ -25,7 +25,7 @@ export function Timeline({ items }: TimelineProps) {
                 }}
             />
 
-            <div className="space-y-6">
+            <div className="space-y-8">
                 {items.map((item, index) => (
                     <div key={index} className="relative flex gap-4 items-start">
                         {/* Period - Hidden on mobile */}
@@ -56,19 +56,19 @@ export function Timeline({ items }: TimelineProps) {
                             )}
 
                             {item.details && item.details.length > 0 && (
-                                <div className="mt-2 space-y-2">
+                                <div className="mt-4 space-y-1">
                                     {item.details.map((detail, detailIndex) => (
-                                        <div key={detailIndex}>
+                                        <div key={detailIndex} className={detail.items && detail.items.length > 0 && detailIndex > 0 ? "mt-5" : ""}>
                                             {/* title + items가 있으면 기존 스타일 */}
                                             {detail.items && detail.items.length > 0 ? (
                                                 <div>
-                                                    <p className="text-xs font-medium text-foreground/80 mb-1">
+                                                    <p className="text-sm font-medium text-foreground/80 mb-2">
                                                         {detail.title}
                                                     </p>
-                                                    <ul className="space-y-0.5">
+                                                    <ul className="space-y-1">
                                                         {detail.items.map((detailItem, itemIndex) => (
-                                                            <li key={itemIndex} className="flex items-start gap-1.5 text-xs text-muted-foreground leading-relaxed">
-                                                                <span className="text-muted-foreground/50 mt-1 flex-shrink-0">•</span>
+                                                            <li key={itemIndex} className="flex items-center gap-2 text-xs text-muted-foreground leading-loose">
+                                                                <span className="text-muted-foreground/50 flex-shrink-0">•</span>
                                                                 <span className="break-words">{detailItem}</span>
                                                             </li>
                                                         ))}
@@ -76,8 +76,8 @@ export function Timeline({ items }: TimelineProps) {
                                                 </div>
                                             ) : (
                                                 /* title만 있으면 bullet 스타일 */
-                                                <div className="flex items-start gap-1.5 text-xs text-muted-foreground leading-relaxed">
-                                                    <span className="text-muted-foreground/50 mt-1 flex-shrink-0">•</span>
+                                                <div className="flex items-center gap-2 text-xs text-muted-foreground leading-loose">
+                                                    <span className="text-muted-foreground/50 flex-shrink-0">•</span>
                                                     <span className="break-words">{detail.title}</span>
                                                 </div>
                                             )}
