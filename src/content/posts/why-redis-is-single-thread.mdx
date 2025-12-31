@@ -1,0 +1,101 @@
+---
+title: "왜 Redis는 싱글 스레드인가? Redis를 향한 오해"
+description: "Redis의 싱글 스레드 설계 철학과 I/O Multiplexing의 동작 원리를 알아봅니다."
+date: "2025-12-31"
+category: "Backend Engineering"
+tags:
+  - Redis
+  - Database
+---
+
+현대에 많은 사람들이 스트리밍 구조나 캐싱을 위해서 Redis를 활용합니다. 11월 `토스 면접`을 보면서 받았던 질문에 대해서 조금 더 심도 깊게 고민했고, 이때 고민한 내용을 정리해보고자 합니다.
+
+# Redis의 등장 배경
+
+## 2000년대 중반 웹서비스의 문제점
+
+![2000년대 중반 웹서비스 구조](/images/why-redis-is-single-thread01.png)
+
+2000년대 중반의 웹서비스는 **디스크에 의존적인 구조**였습니다. 동시 접속자가 많아질수록 Lock 경합이 심화되고, Disk I/O 병목이 빈번했습니다. 실시간 랭킹 같은 데이터 처리에는 치명적이었죠.
+
+## 기존 해결책과 한계
+
+**Memcached**가 있었지만, Key-Value만 지원하고 영속화가 불가능했습니다.
+
+그래서 Salvatore Sanfilippo(antirez)는 2009년 Redis를 개발합니다.
+
+> **"메모리 레벨에서 DB처럼 다룰 수 있지 않을까?"**
+
+# 싱글 스레드를 선택한 이유
+
+> "멀티코어 CPU 시대에 왜 싱글 스레드를 선택했을까?"
+
+## 1. 동기화 오버헤드 제거
+
+![멀티 스레드 일 때 생기는 문제](/images/why-redis-is-single-thread02.png)
+
+싱글 스레드는 Lock/Mutex가 필요 없습니다:
+- **Race Condition** 원천 차단
+- **Deadlock** 발생 불가
+
+더 중요한 건, 모든 명령어가 **원자적(Atomic)**으로 실행된다는 점입니다. 개발자가 복잡한 트랜잭션 격리 수준을 고민하지 않아도 데이터 일관성이 자연스럽게 보장됩니다.
+
+## 2. Context Switching 비용 제거
+
+스레드 간 전환 시 CPU 레지스터 저장/복원, 캐시 무효화 등의 비용이 발생합니다. 싱글 스레드는 이 비용이 **0**입니다.
+
+## 3. 진짜 병목은 CPU가 아니다
+
+대부분의 Redis 명령어(GET, SET)는 O(1)입니다. CPU 연산은 극히 짧고, 진짜 병목은 **네트워크 I/O**에서 발생합니다.
+
+# 어떻게 빠른가? I/O Multiplexing
+
+"싱글 스레드인데 어떻게 수만 개의 동시 연결을 처리할까?"
+
+답은 **I/O Multiplexing**입니다. 하나의 스레드가 여러 소켓을 동시에 모니터링하는 기법으로, 운영체제의 시스템 콜을 통해 구현됩니다:
+- **Linux**: `epoll`
+- **macOS/FreeBSD**: `kqueue`
+
+비유하자면, 여러 테이블의 손님(Socket)이 있는 식당에서 **점원 한 명(Single Thread)**이 모든 테이블을 돌아다니며 주문이 준비된 테이블만 서빙하는 방식입니다. 모든 테이블 앞에 서서 기다리는 게 아니라, 주방에서 "3번 테이블 나왔어요!"라고 알려주면 그때 가는 거죠.
+
+핵심은 **"폴링하지 않는다"**는 것입니다. OS 커널이 이벤트가 발생한 소켓만 알려주므로 CPU 사용량이 최소화됩니다.
+
+# Redis는 100% 싱글 스레드가 아니다
+
+> [!IMPORTANT]
+> Redis의 "메인 스레드"가 싱글 스레드일 뿐, 백그라운드 스레드는 따로 있습니다.
+
+![Redis 백그라운드 스레드](/images/why-redis-is-single-thread03.png)
+
+- **BIO_CLOSE_FILE**: 대용량 파일 닫기
+- **BIO_AOF_FSYNC**: AOF 파일의 디스크 동기화
+- **BIO_LAZY_FREE**: `UNLINK`, `FLUSHDB ASYNC` 등 비동기 메모리 해제
+
+# Redis 6.0: 멀티스레드 I/O
+
+Redis 6.0(2020년)에서는 **Threaded I/O**가 도입되었습니다.
+
+왜 I/O만 멀티스레드로 바꿨을까요? 패킷의 인코딩/디코딩 과정에서 발생하는 CPU 비용이 점점 커졌기 때문입니다. 비유하자면, **"요리(명령어 실행)"는 한 명이 하되, "재료 손질과 서빙(I/O)"만 조수들에게 맡긴 것**입니다.
+
+**명령어 실행은 여전히 싱글 스레드**이므로 원자성과 데이터 일관성은 그대로 유지됩니다.
+
+```bash
+# redis.conf
+io-threads 4
+io-threads-do-reads yes
+```
+
+# 결론
+
+Redis는 **단순함을 유지하면서 효율을 극대화**하기 위해 싱글 스레드를 선택했습니다.
+
+- Lock 없이 원자성 보장
+- Context Switching 오버헤드 제거
+- I/O Multiplexing으로 동시성 확보
+
+그리고 시대의 흐름에 맞춰, 6.0에서는 I/O만 선택적으로 멀티스레드화하며 유연하게 진화하고 있습니다.
+
+# 참고 자료
+
+- [Redis가 싱글 스레드인 이유](https://akasai.space/redis/about_redis_2/)
+- [Socket, I/O Multiplexing, Event Loop](https://hello70825.tistory.com/598)
