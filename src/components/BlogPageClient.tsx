@@ -75,6 +75,25 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
         });
     }, [posts, searchQuery, selectedCategory, selectedTags]);
 
+    // 선택된 카테고리 기준으로 태그 필터링
+    const filteredTags = useMemo(() => {
+        if (!selectedCategory) return tags;
+
+        const categoryPosts = posts.filter(post => post.category === selectedCategory);
+        const tagsInCategory = new Set(categoryPosts.flatMap(post => post.tags));
+        return tags.filter(tag => tagsInCategory.has(tag));
+    }, [posts, tags, selectedCategory]);
+
+    // 카테고리 변경 시 유효하지 않은 태그 자동 제거
+    useEffect(() => {
+        if (selectedTags.length > 0) {
+            const validTags = selectedTags.filter(tag => filteredTags.includes(tag));
+            if (validTags.length !== selectedTags.length) {
+                setSelectedTags(validTags);
+            }
+        }
+    }, [filteredTags, selectedTags]);
+
     // 페이지네이션 계산
     const totalPages = Math.ceil(filteredPosts.length / POSTS_PER_PAGE);
     const paginatedPosts = filteredPosts.slice(
@@ -117,8 +136,8 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
     }
 
     const activeFilterCount = (selectedCategory ? 1 : 0) + selectedTags.length;
-    const visibleTags = tags.slice(0, visibleTagsCount);
-    const hasMoreTags = visibleTagsCount < tags.length;
+    const visibleTags = filteredTags.slice(0, visibleTagsCount);
+    const hasMoreTags = visibleTagsCount < filteredTags.length;
 
     const handleLoadMoreTags = () => {
         setVisibleTagsCount(prev => Math.min(prev + TAGS_PER_VIEW, tags.length));
