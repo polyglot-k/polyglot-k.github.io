@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   icons: {
     icon: '/profile.png',
   },
+  verification: {
+    google: 'W6QzFlEJHSdS_5BgbtruPQYnBd2ErRx-1Ml4FteyM4c',
+  },
 };
 
 import { GoogleAnalytics } from '@next/third-parties/google';
