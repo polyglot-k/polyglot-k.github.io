@@ -26,9 +26,31 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         return { title: 'Post Not Found' };
     }
 
+    const url = `https://polyglot-k.github.io/blog/${slug}`;
+
     return {
         title: post.title,
         description: post.description,
+        alternates: {
+            canonical: url,
+        },
+        openGraph: {
+            type: 'article',
+            title: post.title,
+            description: post.description,
+            url: url,
+            siteName: '배고픈 개발자의 생존일기',
+            locale: 'ko_KR',
+            publishedTime: post.date,
+            authors: ['polyglot-k'],
+            tags: post.tags,
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: post.title,
+            description: post.description,
+        },
+        keywords: post.tags,
     };
 }
 

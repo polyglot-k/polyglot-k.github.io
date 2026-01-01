@@ -11,6 +11,7 @@ const notoSansKr = Noto_Sans_KR({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://polyglot-k.github.io'),
   title: '배고픈 개발자의 생존일기',
   description: 'MDX 기반 개인 블로그',
   icons: {
@@ -18,6 +19,14 @@ export const metadata: Metadata = {
   },
   verification: {
     google: 'W6QzFlEJHSdS_5BgbtruPQYnBd2ErRx-1Ml4FteyM4c',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'ko_KR',
+    siteName: '배고픈 개발자의 생존일기',
+  },
+  twitter: {
+    card: 'summary_large_image',
   },
 };
 
