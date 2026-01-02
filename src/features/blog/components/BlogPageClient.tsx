@@ -22,9 +22,10 @@ interface BlogPageClientProps {
     posts: PostMeta[];
     categories: string[];
     tags: string[];
+    categoryCounts: Record<string, number>;
 }
 
-export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps) {
+export function BlogPageClient({ posts, categories, tags, categoryCounts }: BlogPageClientProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -119,8 +120,8 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
                 <div className="animate-pulse space-y-4">
                     <div className="h-10 bg-muted rounded" />
                     <div className="flex gap-2">
-                        <div className="h-8 w-16 bg-muted rounded-full" />
-                        <div className="h-8 w-16 bg-muted rounded-full" />
+                        <div className="h-8 w-20 bg-muted rounded-full" />
+                        <div className="h-8 w-24 bg-muted rounded-full" />
                         <div className="h-8 w-20 bg-muted rounded-full" />
                     </div>
                     <div className="h-20 bg-muted rounded" />
@@ -130,7 +131,7 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
         );
     }
 
-    const activeFilterCount = (selectedCategory ? 1 : 0) + selectedTags.length;
+    const activeFilterCount = selectedTags.length;
     const visibleTags = filteredTags.slice(0, visibleTagsCount);
     const hasMoreTags = visibleTagsCount < filteredTags.length;
 
@@ -148,7 +149,7 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
             </header>
 
             {/* Search and Filter */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-2 mb-4">
                 <Input
                     type="text"
                     placeholder="검색어를 입력하세요..."
@@ -169,40 +170,10 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md w-[95vw] rounded-xl overflow-hidden flex flex-col max-h-[85vh] p-0 gap-0 bg-background">
                         <DialogHeader className="px-6 py-4 border-b border-border">
-                            <DialogTitle className="text-lg font-bold">필터</DialogTitle>
+                            <DialogTitle className="text-lg font-bold">태그 필터</DialogTitle>
                         </DialogHeader>
 
                         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-8">
-                            {/* Category Filter */}
-                            <div className="space-y-3">
-                                <h3 className="text-sm font-semibold text-foreground">
-                                    카테고리
-                                </h3>
-                                <div className="flex flex-wrap gap-2">
-                                    <button
-                                        onClick={() => setSelectedCategory(null)}
-                                        className={`px-4 py-2 text-sm border rounded-lg transition-all duration-200 ${!selectedCategory
-                                            ? 'bg-foreground text-background border-foreground font-medium shadow-sm'
-                                            : 'bg-background text-muted-foreground border-border hover:border-foreground hover:text-foreground'
-                                            }`}
-                                    >
-                                        전체
-                                    </button>
-                                    {categories.map((category) => (
-                                        <button
-                                            key={category}
-                                            onClick={() => setSelectedCategory(category === selectedCategory ? null : category)}
-                                            className={`px-4 py-2 text-sm border rounded-lg transition-all duration-200 ${selectedCategory === category
-                                                ? 'bg-foreground text-background border-foreground font-medium shadow-sm'
-                                                : 'bg-background text-muted-foreground border-border hover:border-foreground hover:text-foreground'
-                                                }`}
-                                        >
-                                            {category}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
                             {/* Tags Filter */}
                             <div className="space-y-3">
                                 <h3 className="text-sm font-semibold text-foreground">
@@ -240,7 +211,6 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
                             <Button
                                 variant="outline"
                                 onClick={() => {
-                                    setSelectedCategory(null);
                                     setSelectedTags([]);
                                 }}
                                 className="h-11 px-4 border-border hover:bg-accent hover:text-accent-foreground text-muted-foreground"
@@ -259,30 +229,43 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
                 </Dialog>
             </div>
 
-            {/* Active Filters Display */}
-            {(selectedCategory || selectedTags.length > 0) && (
+            {/* Category Tabs */}
+            <div className="flex flex-wrap gap-2 mb-6">
+                <button
+                    onClick={() => setSelectedCategory(null)}
+                    className={`px-3 py-1.5 text-sm rounded-full transition-all duration-200 ${!selectedCategory
+                        ? 'bg-foreground text-background font-medium'
+                        : 'bg-muted text-muted-foreground hover:text-foreground'
+                        }`}
+                >
+                    전체 ({posts.length})
+                </button>
+                {categories.map((category) => (
+                    <button
+                        key={category}
+                        onClick={() => setSelectedCategory(category === selectedCategory ? null : category)}
+                        className={`px-3 py-1.5 text-sm rounded-full transition-all duration-200 ${selectedCategory === category
+                            ? 'bg-foreground text-background font-medium'
+                            : 'bg-muted text-muted-foreground hover:text-foreground'
+                            }`}
+                    >
+                        {category} ({categoryCounts[category] || 0})
+                    </button>
+                ))}
+            </div>
+
+            {/* Active Tags Display */}
+            {selectedTags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-6 p-4 bg-muted/30 rounded-lg border border-border/50">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground w-full mb-1">
-                        <span className="font-medium text-foreground">적용된 필터:</span>
+                        <span className="font-medium text-foreground">선택된 태그:</span>
                         <button
-                            onClick={() => { setSelectedCategory(null); setSelectedTags([]); }}
+                            onClick={() => setSelectedTags([])}
                             className="text-xs underline hover:text-foreground ml-auto"
                         >
                             모두 지우기
                         </button>
                     </div>
-                    {selectedCategory && (
-                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-background border border-border text-xs font-medium shadow-sm">
-                            <span className="text-muted-foreground">카테고리:</span>
-                            <span className="text-foreground">{selectedCategory}</span>
-                            <button
-                                onClick={() => setSelectedCategory(null)}
-                                className="ml-1 text-muted-foreground hover:text-foreground"
-                            >
-                                <X className="h-3 w-3" />
-                            </button>
-                        </div>
-                    )}
                     {selectedTags.map(tag => (
                         <div key={tag} className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-background border border-border text-xs font-medium shadow-sm">
                             <span className="text-muted-foreground">#</span>
