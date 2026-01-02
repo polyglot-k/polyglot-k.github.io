@@ -1,6 +1,6 @@
-import { Timeline } from '@/components/Timeline';
-import { Introduction } from '@/components/Introduction';
-import { skillsData, careerData, activityData, opensourceData, awardsData } from '@/lib/data';
+import { Timeline } from '@/features/about/components/Timeline';
+import { Introduction } from '@/features/about/components/Introduction';
+import { skillsData, careerData, activityData, opensourceData, awardsData } from '@/shared/config/profile';
 
 export default function AboutPage() {
     return (

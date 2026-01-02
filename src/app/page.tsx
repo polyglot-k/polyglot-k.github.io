@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { BlogCard } from '@/components/BlogCard';
-import { Introduction } from '@/components/Introduction';
-import { getAllPosts } from '@/lib/posts';
+import { BlogCard } from '@/features/blog/components/BlogCard';
+import { Introduction } from '@/features/about/components/Introduction';
+import { getAllPosts } from '@/features/blog/api/posts';
 
 export default function Home() {
   const posts = getAllPosts();

@@ -2,8 +2,8 @@
 
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { SocialLinks } from '@/components/SocialLinks';
-import { siteConfig } from '@/lib/data';
+import { SocialLinks } from '@/components/common/SocialLinks';
+import { siteConfig } from '@/shared/config/site';
 import { sendGAEvent } from '@next/third-parties/google';
 
 const FOOD_EMOJIS = ['🍕', '🍔', '🍟', '🌭', '🍱', '🍣', '🍙', '🍗', '🍜', '🍩', '🍦'];

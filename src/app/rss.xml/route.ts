@@ -1,5 +1,5 @@
-import { siteConfig } from '@/lib/data';
-import { getAllPosts } from '@/lib/posts';
+import { siteConfig } from '@/shared/config/site';
+import { getAllPosts } from '@/features/blog/api/posts';
 import RSS from 'rss';
 
 export const dynamic = 'force-static';

@@ -1,4 +1,4 @@
-import { getAllPosts } from '@/lib/posts';
+import { getAllPosts } from '@/features/blog/api/posts';
 import { MetadataRoute } from 'next';
 
 export const dynamic = 'force-static';

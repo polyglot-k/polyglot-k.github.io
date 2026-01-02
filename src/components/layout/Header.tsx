@@ -37,14 +37,6 @@ export function Header() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // Sticky wrapper to keep position, inner div for visual styles?
-    // Actually applying styles to the header tag itself tracking `sticky` behavior might be tricky if "sticky" is what triggers the visual change.
-    // User said: "When it starts following (sticky point), give it shadow/shade".
-    // Since we used `sticky top-4`, it starts sticking when scroll reaches top-4.
-    // Actually, `sticky` stays in flow until scrolled to.
-    // If it's at the very top (mt-4 or whatever), `scrollY` reflects that.
-    // Let's assume when scrollY > 0 or small threshold, we trigger the "floating active" look.
-
     return (
         <header
             className={`sticky top-0 z-50 w-full max-w-[40rem] mx-auto mb-2 transition-all duration-300 ease-in-out border rounded-md ${isScrolled

@@ -30,14 +30,34 @@ export interface Post extends PostMeta {
     navigation: PostNavigation;
 }
 
+// 카테고리 폴더를 재귀적으로 탐색하여 모든 MDX 파일 찾기
+function getAllMdxFiles(dir: string): { filePath: string; slug: string }[] {
+    const results: { filePath: string; slug: string }[] = [];
+
+    const items = fs.readdirSync(dir, { withFileTypes: true });
+
+    for (const item of items) {
+        const fullPath = path.join(dir, item.name);
+
+        if (item.isDirectory()) {
+            // 하위 디렉토리 재귀 탐색
+            results.push(...getAllMdxFiles(fullPath));
+        } else if (item.isFile() && item.name.endsWith('.mdx')) {
+            // slug는 파일명에서 .mdx 제거
+            const slug = item.name.replace(/\.mdx$/, '');
+            results.push({ filePath: fullPath, slug });
+        }
+    }
+
+    return results;
+}
+
 export function getAllPosts(): PostMeta[] {
-    const fileNames = fs.readdirSync(postsDirectory);
-    const posts = fileNames
-        .filter((fileName) => fileName.endsWith('.mdx'))
-        .map((fileName) => {
-            const slug = fileName.replace(/\.mdx$/, '');
-            const fullPath = path.join(postsDirectory, fileName);
-            const fileContents = fs.readFileSync(fullPath, 'utf8');
+    const mdxFiles = getAllMdxFiles(postsDirectory);
+
+    const posts = mdxFiles
+        .map(({ filePath, slug }) => {
+            const fileContents = fs.readFileSync(filePath, 'utf8');
             const { data } = matter(fileContents);
 
             return {
@@ -74,9 +94,18 @@ function extractToc(content: string): TocItem[] {
     return toc;
 }
 
+// slug로 MDX 파일 경로 찾기 (카테고리 폴더 지원)
+function findPostPath(slug: string): string | null {
+    const mdxFiles = getAllMdxFiles(postsDirectory);
+    const found = mdxFiles.find(f => f.slug === slug);
+    return found ? found.filePath : null;
+}
+
 export function getPostBySlug(slug: string): Post | null {
     try {
-        const fullPath = path.join(postsDirectory, `${slug}.mdx`);
+        const fullPath = findPostPath(slug);
+        if (!fullPath) return null;
+
         const fileContents = fs.readFileSync(fullPath, 'utf8');
         const { data, content } = matter(fileContents);
         const toc = extractToc(content);

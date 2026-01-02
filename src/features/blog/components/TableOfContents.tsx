@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import type { TocItem } from '@/lib/posts';
+import type { TocItem } from '@/features/blog/api/posts';
 
 interface TableOfContentsProps {
     items: TocItem[];

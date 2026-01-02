@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { BlogCard } from '@/components/BlogCard';
+import { BlogCard } from '@/features/blog/components/BlogCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,7 +12,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Filter, X, ChevronDown, RotateCcw } from 'lucide-react';
-import type { PostMeta } from '@/lib/posts';
+import type { PostMeta } from '@/features/blog/api/posts';
 
 const STORAGE_KEY = 'blog-show-details';
 const POSTS_PER_PAGE = 10;
@@ -105,11 +105,6 @@ export function BlogPageClient({ posts, categories, tags }: BlogPageClientProps)
     useEffect(() => {
         setCurrentPage(1);
     }, [searchQuery, selectedCategory, selectedTags]);
-
-    // 모달이 열릴 때 태그 카운트 리셋 (선택적 UX, 여기선 유지)
-    // useEffect(() => {
-    //     if (isFilterOpen) setVisibleTagsCount(TAGS_PER_VIEW);
-    // }, [isFilterOpen]);
 
     // 초기 로딩 중에는 스켈레톤 표시
     if (showDetails === null) {

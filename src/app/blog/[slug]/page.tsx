@@ -4,14 +4,14 @@ import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import { remarkAlert } from 'remark-github-blockquote-alert';
 import { notFound } from 'next/navigation';
-import { getPostBySlug, getAllPosts } from '@/lib/posts';
+import { getPostBySlug, getAllPosts } from '@/features/blog/api/posts';
 import { MDXRemote, MDXRemoteProps } from 'next-mdx-remote/rsc';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeSlug from 'rehype-slug';
-import { TableOfContents } from '@/components/TableOfContents';
-import { CodeBlock } from '@/components/CodeBlock';
-import { Giscus } from '@/components/Giscus';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { TableOfContents } from '@/features/blog/components/TableOfContents';
+import { CodeBlock } from '@/features/blog/components/CodeBlock';
+import { Giscus } from '@/features/blog/components/Giscus';
+import { ChevronLeft, ChevronRight, Info, Lightbulb, AlertCircle, AlertTriangle, ShieldAlert } from 'lucide-react';
 
 export async function generateStaticParams() {
     const posts = getAllPosts();
@@ -58,9 +58,6 @@ const mdxOptions = {
     remarkPlugins: [remarkGfm, remarkBreaks, remarkAlert],
     rehypePlugins: [rehypeHighlight, rehypeSlug],
 };
-
-
-import { Info, Lightbulb, AlertCircle, AlertTriangle, ShieldAlert } from 'lucide-react';
 
 const alertIcons = {
     note: Info,
