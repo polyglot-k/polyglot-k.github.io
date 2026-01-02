@@ -23,9 +23,10 @@ interface BlogPageClientProps {
     categories: string[];
     tags: string[];
     categoryCounts: Record<string, number>;
+    tagCounts: Record<string, number>;
 }
 
-export function BlogPageClient({ posts, categories, tags, categoryCounts }: BlogPageClientProps) {
+export function BlogPageClient({ posts, categories, tags, categoryCounts, tagCounts }: BlogPageClientProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -189,7 +190,7 @@ export function BlogPageClient({ posts, categories, tags, categoryCounts }: Blog
                                                 : 'bg-background text-muted-foreground border-border hover:border-foreground hover:text-foreground'
                                                 }`}
                                         >
-                                            # {tag}
+                                            # {tag} ({tagCounts[tag] || 0})
                                         </button>
                                     ))}
                                 </div>

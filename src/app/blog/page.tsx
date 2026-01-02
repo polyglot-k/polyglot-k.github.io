@@ -12,12 +12,19 @@ export default function BlogPage() {
         return acc;
     }, {} as Record<string, number>);
 
+    // 태그별 포스트 개수 계산
+    const tagCounts = tags.reduce((acc, tag) => {
+        acc[tag] = posts.filter(post => post.tags.includes(tag)).length;
+        return acc;
+    }, {} as Record<string, number>);
+
     return (
         <BlogPageClient
             posts={posts}
             categories={categories}
             tags={tags}
             categoryCounts={categoryCounts}
+            tagCounts={tagCounts}
         />
     );
 }
