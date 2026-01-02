@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   title: '배고픈 개발자의 생존일기',
   description: 'MDX 기반 개인 블로그',
   icons: {
-    icon: '/profile.png',
+    icon: '/icon.png',
   },
   verification: {
     google: 'W6QzFlEJHSdS_5BgbtruPQYnBd2ErRx-1Ml4FteyM4c',
