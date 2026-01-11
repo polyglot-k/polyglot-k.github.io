@@ -25,7 +25,7 @@ export const careerData = [
     {
         period: '26.01 ~ ing',
         company: 'Wrtn Technologies, Inc.',
-        role: 'AX CIC Team Agent Developer',
+        role: 'Agent Developer Intern (AX CIC Team)',
     },
     {
         period: '25.06 ~ 25.10',
