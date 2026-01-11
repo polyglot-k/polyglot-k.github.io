@@ -23,6 +23,11 @@ export const skillsData = [
 // Career Timeline
 export const careerData = [
     {
+        period: '26.01 ~ ing',
+        company: 'Wrtn Technologies, Inc.',
+        role: 'AX CIC Team Agent Developer',
+    },
+    {
         period: '25.06 ~ 25.10',
         company: '모의 수능 신청 플랫폼 : 모수 (창업, MAU 8000+)',
         role: 'Lead Backend Engineer',
