@@ -24,8 +24,13 @@ export const skillsData = [
 export const careerData = [
     {
         period: '26.01 ~ ing',
+        company: 'ABLY Corporation',
+        role: 'Backend Engineer Intern ( 인에이블 스쿼드 )',
+    },
+    {
+        period: '26.01 ~ 25.02',
         company: 'Wrtn Technologies, Inc.',
-        role: 'Agent Developer Intern ( AX CIC Team)',
+        role: 'Agent Developer Intern ( AX CIC Team )',
     },
     {
         period: '25.06 ~ 25.10',
