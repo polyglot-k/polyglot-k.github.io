@@ -24,7 +24,7 @@ export const skillsData = [
 export const careerData = [
     {
         period: '26.01 ~ ing',
-        company: 'ABLY Corporation',
+        company: 'ABLY Corporation, Inc.',
         role: 'Backend Engineer Intern ( 인에이블 스쿼드 )',
     },
     {
