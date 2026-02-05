@@ -23,12 +23,12 @@ export const skillsData = [
 // Career Timeline
 export const careerData = [
     {
-        period: '26.01 ~ ing',
+        period: '26.02 ~ ing',
         company: 'ABLY Corporation, Inc.',
         role: 'Backend Engineer Intern ( 인에이블 스쿼드 )',
     },
     {
-        period: '26.01 ~ 25.02',
+        period: '26.01 ~ 26.02',
         company: 'Wrtn Technologies, Inc.',
         role: 'Agent Developer Intern ( AX CIC Team )',
     },
